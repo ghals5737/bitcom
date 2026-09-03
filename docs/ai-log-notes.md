@@ -22,6 +22,10 @@
 
 5. **프론트: shadcn Button 의 `asChild` 미지원 (Base UI 기반)** → 타입 오류로 발견, `render` prop 으로 교체. 이후 `nativeButton={false}` 누락은 브라우저 콘솔 경고로 발견.
 
+6. **Cloudflare Pages Function → EC2 IP 직접 fetch 가 1003 으로 차단**
+   - 발견: 배포 후 `/bitcom/api/*` 가 403 `error code: 1003`. EC2 는 curl 로 정상이었으므로 프록시 구간 문제로 좁힘 → Cloudflare 문서.
+   - 고침: `BACKEND_ORIGIN` 을 sslip.io 호스트명으로. 계획 단계에서 "도메인 없어도 IP 로 붙이면 된다"고 본 판단이 틀렸던 지점.
+
 ## A. AI 제안을 거절/변경한 지점 (사용자 결정)
 
 1. 성명 파싱: AI 는 복성 사전 + 관리자 확인 제안 → 사용자는 "첫 글자 = 성" 단순 규칙 (목적이 API 형식 맞추기).

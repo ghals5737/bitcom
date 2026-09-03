@@ -174,6 +174,6 @@ action: `EMPLOYEE_UPDATED`, `BGCHECK_REQUESTED`, `BGCHECK_VIEWED`, `BGCHECK_DELE
 
 1. RDS PostgreSQL (ap-northeast-2, db.t4g.micro, 퍼블릭 접근 불가, EC2 SG만 허용)
 2. EC2 (ap-northeast-2, t3.small, Amazon Linux 2023, docker) — Spring Boot 이미지 실행, 환경변수로 DB·외부 API URL
-3. Cloudflare Pages — 루트 디렉터리 = 저장소 루트, 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`, 환경변수 `BACKEND_ORIGIN=http://<EC2>:<nginx 포트>`, `NODE_VERSION=22`
+3. Cloudflare Pages — 루트 디렉터리 = 저장소 루트, 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`, 환경변수 `BACKEND_ORIGIN=http://<EC2 IP>.sslip.io` (Functions fetch 는 IP 직접 접근 불가, error 1003), `NODE_VERSION=22`
 4. EC2 SG: nginx 포트 인바운드 = Cloudflare IP 대역, 22 = 내 IP, 8000 은 미개방(127.0.0.1)
 5. 제출용 계정 확인, 스모크 테스트(로그인 → 생성 → BGC → 퇴사 → 재로그인 거부)

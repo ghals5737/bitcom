@@ -1,8 +1,8 @@
 # AI 협업 대화 로그
 
 - 프로젝트: `/Users/hbrc/workspace/bitcom`
-- 생성 시각: 2026-09-03 15:41:50 (KST)
-- 세션 수: 1 / 턴 수: 19 / 응답 소요 합계: 128m 08s
+- 생성 시각: 2026-09-03 16:15:04 (KST)
+- 세션 수: 1 / 턴 수: 25 / 응답 소요 합계: 133m 12s
 
 ## 턴 요약
 
@@ -27,6 +27,12 @@
 | 17 | 2026-09-03 15:23:04 | 1m 06s | 2 | https://github.com/ghals5737/bitcom.git 원격 레포 주소야 지금까지 작업물 연 |
 | 18 | 2026-09-03 15:31:21 | 3m 51s | 12 | 루트디렉토리에서 부터 cloudflare pages배포할려는데 빌드커멘드 좀 알려줘 |
 | 19 | 2026-09-03 15:39:52 | 1m 56s | 4 | EC2 배포용 Dockerfile이랑 실행 스크립트 만들어줘 nginx는 이미 설치되어있어 거기기에 추가하는 |
+| 20 | 2026-09-03 15:47:00 | 1m 15s | 2 | 8080말고 8000번으로 해줘 지금 실행중인 설정이 있어 |
+| 21 | 2026-09-03 15:49:51 | 56s | 2 | 15.165.171.81 ec2퍼블릭 ip야 배포 테스트좀 부탁해 |
+| 22 | 2026-09-03 16:00:09 | 18s | 0 | [ec2-user@ip-172-31-34-21 bitcom]$ sudo docker logs bitcom-p |
+| 23 | 2026-09-03 16:02:35 | 30s | 1 | 재기동했어 다시 확인해줘 |
+| 24 | 2026-09-03 16:12:57 | 1m 48s | 5 | include 추가하고 reload했어 다시 확인해줘 |
+| 25 | 2026-09-03 16:14:47 | 15s | 1 | <task-notification> <task-id>bovf0l1ft</task-id> <tool-use-i |
 
 ---
 
@@ -2740,5 +2746,479 @@ sudo ./deploy/ec2/install-nginx.sh
 ```
 
 **확인해 주실 한 가지**: nginx server 블록을 `listen 8080`으로 두었습니다. Cloudflare Pages의 `BACKEND_ORIGIN`이 `http://<EC2 IP>:8080`을 가리키는 전제입니다. 기존 nginx가 이미 8080이나 80에서 다른 서비스를 하고 있으면 포트를 바꾸고 `BACKEND_ORIGIN`도 같이 맞추면 됩니다.
+
+---
+
+## 턴 20
+
+- 시작: 2026-09-03 15:47:00 / 종료: 2026-09-03 15:48:15 / 소요: 1m 15s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+8080말고 8000번으로 해줘 지금 실행중인 설정이 있어
+
+### 🤖 Claude
+
+<details><summary>도구 호출 2건</summary>
+
+- `Bash: Switch everything to port 8000 and nginx location-include style`
+  ```
+  ok
+  deploy/ec2/README.md:5:8080 은 쓰지 않는다. nginx 는 이미 실행 중인 server 블록을 그대로 쓰고 location 만 include 한다.
+  deploy/ec2/README.md:5:8080 은 쓰지 않는다. nginx 는 이미 실행 중인 server 블록을 그대로 쓰고 location 만 include 한다.
+  syntax ok
+  ```
+- `Bash: Commit and push port change`
+  ```
+  9e303ed EC2 배포: 8080 제거, 컨테이너·호스트 8000 통일, nginx 는 기존 server 블록에 location include
+   deploy/ec2/nginx/bitcom-api.conf                   | 31 +-------
+   deploy/ec2/nginx/bitcom-api.location               | 19 +++++
+   deploy/ec2/run.sh                                  |  2 +-
+   docs/implementation-plan.md  …
+  ```
+
+</details>
+
+8080 제거하겠습니다. 기존에 돌고 있는 nginx server 블록이 있으니 새 server 블록을 만들지 않고, 그 안에 include할 location 스니펫으로 바꾸고 포트는 컨테이너 안팎 모두 8000으로 통일합니다.
+
+8080을 전부 없애고 8000으로 통일했습니다(`9e303ed`, 푸시 완료).
+
+**바뀐 구조**
+
+- 컨테이너 안 Spring Boot도 `SERVER_PORT=8000`, 호스트 매핑도 `127.0.0.1:8000`. 어디에도 8080이 없습니다.
+- nginx는 새 server 블록을 만들지 않습니다. 파일 2개로 나눴습니다.
+  - `conf.d/bitcom-api.conf`: upstream 정의만 (127.0.0.1:8000)
+  - `snippets/bitcom-api.location`: `location /bitcom/api/ { proxy_pass ... }` 블록
+- 실행 중인 server 블록 안에 한 줄만 넣으면 됩니다.
+
+```nginx
+include /etc/nginx/snippets/bitcom-api.location;
+```
+
+- `install-nginx.sh`는 두 파일을 복사한 뒤 아직 include된 곳이 없으면 위 안내를 출력하고, `nginx -t` 후 reload합니다. 기존 설정은 건드리지 않습니다.
+
+**EC2 순서**: `run.sh` → `install-nginx.sh` → 기존 server 블록에 include 추가 → `install-nginx.sh` 한 번 더(검증·reload).
+
+**Cloudflare 쪽**: `BACKEND_ORIGIN`은 기존 nginx server 블록이 듣는 포트로 맞추면 됩니다. 80이면 `http://<EC2 IP>`, 다른 포트면 `http://<EC2 IP>:<포트>`. 보안그룹도 그 포트만 Cloudflare 대역에 열고 8000은 열지 않습니다.
+
+---
+
+## 턴 21
+
+- 시작: 2026-09-03 15:49:51 / 종료: 2026-09-03 15:50:47 / 소요: 56s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+15.165.171.81 ec2퍼블릭 ip야 배포 테스트좀 부탁해
+
+### 🤖 Claude
+
+<details><summary>도구 호출 2건</summary>
+
+- `Bash: Probe EC2 ports for the backend API`
+  ```
+  port 80    HTTP 404 | <!DOCTYPE html><!--ds_S1zi67HehBnVcyUHZh--><html lang="ko"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><li
+  port 443   HTTP 000 | <!DOCTYPE html><!--ds_S1zi67HehBnVcyUHZh--><html lang="ko"><head><meta charSet="utf-8"/><meta n …
+  ```
+- `Bash: Inspect EC2 port 80 response headers for the API path`
+  ```
+  HTTP/1.1 200 OK
+  Server: nginx/1.26.3
+  Date: Thu, 03 Sep 2026 06:50:24 GMT
+  Content-Type: text/html; charset=utf-8
+  Content-Length: 9411
+  Connection: keep-alive
+  Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+  x-nextjs-cache: HIT
+  --- /bitcom/a …
+  ```
+
+</details>
+
+EC2에 curl로 어떤 포트가 열려 있고 `/bitcom/api`가 응답하는지 확인해 보겠습니다.
+
+원격에서 확인한 결과, 아직 백엔드가 연결되지 않은 상태입니다. SSH 접근 권한이 없어 EC2 안은 볼 수 없고, 바깥에서 관측한 사실은 다음과 같습니다.
+
+**관측 결과** (15.165.171.81)
+
+| 포트 | 결과 |
+|---|---|
+| 80 | nginx 1.26.3이 응답. 루트는 200이고 기존 Next.js 앱이 떠 있음(`x-nextjs-cache` 헤더) |
+| 80 `/bitcom/api/auth/me` | 404, 그런데 응답 본문이 nginx가 아니라 그 Next.js 앱의 404 페이지 |
+| 443, 8000, 8080 | 연결 안 됨 (닫혀 있음, 8000은 의도대로) |
+
+즉 nginx의 기존 server 블록이 모든 경로를 Next.js 앱으로 넘기고 있고, `/bitcom/api/` location이 아직 include되지 않았습니다. 백엔드 컨테이너가 안 떠 있었다면 404가 아니라 502가 왔을 텐데, location이 없으니 컨테이너 상태는 밖에서 판별이 안 됩니다.
+
+**EC2에서 해주실 것**
+
+```bash
+cd ~/bitcom && git pull
+sudo ./deploy/ec2/run.sh
+curl -i http://127.0.0.1:8000/bitcom/api/auth/me
+```
+
+위 curl이 401이면 컨테이너는 정상입니다. 그다음 nginx입니다.
+
+```bash
+sudo ./deploy/ec2/install-nginx.sh
+sudo grep -rn "listen\|server_name\|location /" /etc/nginx/conf.d/ /etc/nginx/nginx.conf | head
+```
+
+port 80을 듣는 server 블록 안, 기존 `location /` 앞에 한 줄을 넣고 다시 `install-nginx.sh`를 실행하면 됩니다.
+
+```nginx
+include /etc/nginx/snippets/bitcom-api.location;
+```
+
+nginx는 정확한 접두어 매칭이 긴 쪽을 우선하므로 `/bitcom/api/`가 기존 `location /`보다 먼저 잡힙니다. 위치는 순서와 무관하지만 같은 server 블록 안이어야 합니다.
+
+적용 후 말씀해 주시면 여기서 다시 확인하겠습니다. 확인 항목은 `http://15.165.171.81/bitcom/api/auth/me`가 401 JSON을 돌려주는지, 로그인 POST가 Set-Cookie를 주는지, 그리고 Cloudflare Pages의 `BACKEND_ORIGIN=http://15.165.171.81`(포트 80이라 생략)으로 실제 로그인이 되는지입니다. SSH 키를 주시면 EC2 안에서 직접 진행할 수도 있습니다.
+
+---
+
+## 턴 22
+
+- 시작: 2026-09-03 16:00:09 / 종료: 2026-09-03 16:00:28 / 소요: 18s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+[ec2-user@ip-172-31-34-21 bitcom]$ sudo docker logs bitcom-portal --tail 100
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1698) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1643) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        ... 61 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'employeeRepository' defined in com.bitcom.portal.employee.repository.EmployeeRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Cannot resolve reference to bean 'jpaSharedEM_entityManagerFactory' while setting bean property 'entityManager'
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:377) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:135) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyPropertyValues(AbstractAutowireCapableBeanFactory.java:1725) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1474) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:606) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1760) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1643) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        ... 74 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jpaSharedEM_entityManagerFactory': Cannot resolve reference to bean 'entityManagerFactory' while setting constructor argument
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:377) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:135) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:691) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:513) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1205) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:365) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        ... 88 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: The connection attempt failed.
+-------------------------------------------------------------------------
+SQL State  : 08001
+Error Code : 0
+Message    : The connection attempt failed.
+
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1826) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:607) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:315) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:365) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        ... 100 common frames omitted
+Caused by: org.flywaydb.core.internal.exception.FlywaySqlException: Unable to obtain connection from database: The connection attempt failed.
+-------------------------------------------------------------------------
+SQL State  : 08001
+Error Code : 0
+Message    : The connection attempt failed.
+
+        at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:71) ~[flyway-core-11.7.2.jar!/:na]
+        at org.flywaydb.core.internal.jdbc.JdbcConnectionFactory.<init>(JdbcConnectionFactory.java:76) ~[flyway-core-11.7.2.jar!/:na]
+        at org.flywaydb.core.FlywayExecutor.execute(FlywayExecutor.java:136) ~[flyway-core-11.7.2.jar!/:na]
+        at org.flywaydb.core.Flyway.migrate(Flyway.java:188) ~[flyway-core-11.7.2.jar!/:na]
+        at org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer.afterPropertiesSet(FlywayMigrationInitializer.java:66) ~[spring-boot-autoconfigure-3.5.6.jar!/:3.5.6]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1873) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1822) ~[spring-beans-6.2.11.jar!/:6.2.11]
+        ... 109 common frames omitted
+Caused by: org.postgresql.util.PSQLException: The connection attempt failed.
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:385) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:57) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:277) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.Driver.makeConnection(Driver.java:448) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.Driver.connect(Driver.java:298) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:127) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:370) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:207) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-6.3.3.jar!/:na]
+        at org.flywaydb.core.internal.jdbc.JdbcUtils.openConnection(JdbcUtils.java:59) ~[flyway-core-11.7.2.jar!/:na]
+        ... 115 common frames omitted
+Caused by: java.net.UnknownHostException: <rds-host>
+        at java.base/sun.nio.ch.NioSocketImpl.connect(Unknown Source) ~[na:na]
+        at java.base/java.net.SocksSocketImpl.connect(Unknown Source) ~[na:na]
+        at java.base/java.net.Socket.connect(Unknown Source) ~[na:na]
+        at org.postgresql.core.PGStream.createSocket(PGStream.java:261) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.core.PGStream.<init>(PGStream.java:122) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:146) ~[postgresql-42.7.7.jar!/:42.7.7]
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:289) ~[postgresql-42.7.7.jar!/:42.7.7]
+        ... 127 common frames omitted
+
+Picked up JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70 -Duser.timezone=UTC
+
+### 🤖 Claude
+
+원인은 로그 맨 아래에 있습니다. `UnknownHostException: <rds-host>`, 즉 `backend/.env`의 `DB_URL`이 예시 파일의 자리표시자 `<rds-host>` 그대로입니다. 컨테이너까지는 정상적으로 만들어졌고, DB 접속 정보만 채우면 됩니다.
+
+EC2에서 `backend/.env`를 로컬에서 쓰던 값으로 채워 주세요. 로컬 `.env`와 같은 RDS를 쓰면 됩니다.
+
+```bash
+vi ~/bitcom/backend/.env
+```
+
+```
+DB_URL=jdbc:postgresql://snsb-dev.ccniq24yveck.ap-northeast-2.rds.amazonaws.com:5432/bitcom
+DB_USER=<로컬 .env 의 DB_USER>
+DB_PASSWORD=<로컬 .env 의 DB_PASSWORD>
+BACKGROUND_URL=https://54capvm12g.execute-api.ap-northeast-2.amazonaws.com
+COOKIE_SECURE=true
+```
+
+그다음 이미지 재빌드 없이 재기동합니다.
+
+```bash
+sudo ./deploy/ec2/run.sh --no-build
+```
+
+기동 대기가 "OK: 백엔드 응답 HTTP 401"로 끝나면 성공입니다. 두 가지 짚어둘 점이 있습니다.
+
+- RDS 보안그룹에 이 EC2(172.31.34.21 또는 EC2의 보안그룹)에서 5432 인바운드가 허용돼 있어야 합니다. 로컬 Mac에서는 붙었지만 EC2 보안그룹은 별도입니다. 호스트 이름이 정상으로 바뀐 뒤에도 `connection attempt failed`가 나면 이 원인입니다.
+- 같은 RDS를 쓰므로 로컬 스모크 테스트로 남긴 데이터(EMP-011 생성, EMP-010 퇴사 등)가 그대로 보입니다. 제출 전에 초기화가 필요하면 말씀해 주세요. 테이블을 비우면 다음 기동 때 SeedLoader가 시드를 다시 넣습니다.
+
+재기동 후 알려주시면 밖에서 nginx 경유 응답까지 확인하겠습니다.
+
+---
+
+## 턴 23
+
+- 시작: 2026-09-03 16:02:35 / 종료: 2026-09-03 16:03:05 / 소요: 30s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+재기동했어 다시 확인해줘
+
+### 🤖 Claude
+
+<details><summary>도구 호출 1건</summary>
+
+- `Bash: Verify EC2 backend through nginx: auth, login, cookie, admin list`
+  ```
+  == GET /bitcom/api/auth/me (nginx 80)
+  HTTP/1.1 404 Not Found
+  Server: nginx/1.26.3
+  Content-Type: text/html; charset=utf-8
+  
+  == POST login (bad pw)
+  HTTP/1.1 404 Not Found
+  
+  == POST login (admin)
+  HTTP/1.1 404 Not Found
+  
+  == list with cookie
+  <!DOCTYPE html><!--ds_S1zi67HehBnVcyUHZh--><html lang="ko">< …
+  ```
+
+</details>
+
+아직 nginx 단계에서 막혀 있습니다. `/bitcom/api/...` 요청이 여전히 기존 Next.js 앱으로 가서 그 앱의 404 페이지가 돌아옵니다. 백엔드 컨테이너는 127.0.0.1:8000에만 묶여 있어 밖에서는 확인이 안 되고, nginx location이 아직 server 블록에 include되지 않은 상태입니다.
+
+EC2에서 순서대로 확인해 주세요.
+
+**1. 컨테이너가 정상인지**
+
+```bash
+curl -i http://127.0.0.1:8000/bitcom/api/auth/me
+```
+
+401 JSON이면 백엔드는 정상입니다.
+
+**2. nginx가 실제로 읽는 설정에서 80번 server 블록 찾기**
+
+```bash
+sudo nginx -T 2>/dev/null | grep -nE "^\s*(server \{|listen|server_name|location|include)"
+```
+
+여기서 `listen 80`이 있는 server 블록과 그 안의 `location /`이 어느 파일인지 보입니다. `include /etc/nginx/snippets/bitcom-api.location;` 줄이 그 블록 안에 없으면 아직 적용 전입니다.
+
+**3. 그 server 블록 안에 한 줄 추가 후 reload**
+
+```bash
+sudo vi <2번에서 찾은 파일>
+```
+
+`listen 80;`이 있는 `server { ... }` 안, `location / {` 바로 위에 넣습니다.
+
+```nginx
+    include /etc/nginx/snippets/bitcom-api.location;
+```
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+curl -i http://127.0.0.1/bitcom/api/auth/me
+```
+
+이 curl이 401 JSON을 주면 끝입니다. 2번 명령 출력이 애매하면 그대로 붙여 주세요. 어느 파일 몇 번째 줄에 넣을지 짚어 드리겠습니다.
+
+---
+
+## 턴 24
+
+- 시작: 2026-09-03 16:12:57 / 종료: 2026-09-03 16:14:46 / 소요: 1m 48s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+include 추가하고 reload했어 다시 확인해줘
+
+### 🤖 Claude
+
+<details><summary>도구 호출 5건</summary>
+
+- `Bash: Verify EC2 backend end to end through nginx`
+  ```
+  == GET /bitcom/api/auth/me
+  HTTP/1.1 401 
+  Server: nginx/1.26.3
+  Content-Type: application/json;charset=UTF-8
+  {"error":"UNAUTHENTICATED","message":"로그인이 필요합니다."}
+  == POST login (admin)
+  HTTP/1.1 200 
+  Set-Cookie: SESSION=a217c4d2d531e683b628280501767a2825ff9d2fabacbeef0afda46a6f2cf88e; Path=/; Max-Age …
+  ```
+- `Bash: Re-test authenticated endpoints with explicit cookie header`
+  ```
+  == admin list (manual cookie)
+  Traceback (most recent call last):
+    File "<string>", line 1, in <module>
+    File "<string>", line 1, in <listcomp>
+  TypeError: string indices must be integers
+  == employee → admin (403 expected)
+  {"error":"UNAUTHENTICATED","message":"로그인이 필요합니다."}
+  == employee /me
+  {"error": …
+  ```
+- `Bash: Debug session cookie round-trip against EC2 vs local`
+  ```
+  == jar contents
+  
+  4
+  == fresh login → me in one flow
+  sid=a78658fcdc06... len=64
+  HTTP/1.1 200 
+  {"employeeId":"ADMIN-001","name":"관리자","role":"ADMIN","mustChangePassword":false}== same via cookie jar (-c/-b) but forcing https-less: use -b with manual string
+  {"employeeId":"ADMIN-001","name":"관리자","role" …
+  ```
+- `Bash: Full authenticated flow against EC2 through nginx`
+  ```
+  == admin list
+  12 rows; ['ADMIN-001:ACTIVE:None', 'EMP-001:ACTIVE:None', 'EMP-002:ACTIVE:None', 'EMP-003:ACTIVE:CLEAR', 'EMP-004:ACTIVE:CLEAR', 'EMP-005:ACTIVE:None', 'EMP-006:ACTIVE:None', 'EMP-007:ACTIVE:None', 'EMP-008:ACTIVE:None', 'EMP-009:ACTIVE:None', 'EMP-010:RESIGNED:None', 'EMP-011:ACTIVE:N …
+  ```
+- `Bash: Watch EC2 poller finish the pending Background Check for EMP-006`
+  ```
+  Command running in background with ID: bovf0l1ft. Output is being written to: /private/tmp/claude-501/-Users-hbrc-workspace-bitcom/821d4984-7e33-452b-b3f9-0c25d889666e/tasks/bovf0l1ft.output. You will be notified when it completes. To check interim output, use Read on that file path.
+  ```
+
+</details>
+
+원인은 curl이 평문 HTTP에서 Secure 쿠키를 저장하지 않아 쿠키 파일이 비어 있던 것이고, 백엔드는 정상입니다. 새 세션으로 나머지 항목을 확인합니다.
+
+EC2 백엔드가 nginx 경유로 전부 정상입니다. 마지막으로 컨테이너 안의 폴링 워커가 방금 요청한 EMP-006 pending 건을 끝내는지 지켜보겠습니다.
+
+배포 검증 결과를 먼저 정리하고, 폴링 결과는 도착하면 덧붙이겠습니다.
+
+**EC2(15.165.171.81) nginx 경유 확인 결과**
+
+| 항목 | 결과 |
+|---|---|
+| `/bitcom/api/auth/me` 비로그인 | 401 JSON, nginx 1.26.3 경유 |
+| 관리자 로그인 | 200, `Set-Cookie: SESSION=…; Secure; HttpOnly; SameSite=Lax` |
+| 관리자 목록 | 12명(시드 11 + 로컬 테스트 EMP-011), EMP-010은 RESIGNED |
+| 직원이 관리자 API | 403 FORBIDDEN |
+| 직원이 허용 외 필드 수정 | 400 |
+| 사번 형식 오류 | 400 VALIDATION |
+| 퇴사자 로그인 | 403 RESIGNED |
+| Background Check 요청(EMP-006) | 외부 API 실호출 성공, PENDING으로 저장, 2초 소요 |
+| 로그아웃 후 재요청 | 401 |
+| 응답 지연 | 약 17~22ms |
+
+앞서 목록 조회가 실패한 것은 백엔드 문제가 아니라 curl이 평문 HTTP에서 Secure 쿠키를 저장하지 않아서였습니다. 실제 경로는 HTTPS(pages.dev)라 정상입니다.
+
+**Cloudflare Pages 설정**: 환경변수 `BACKEND_ORIGIN=http://15.165.171.81` (포트 80이라 생략). 보안그룹 80은 Cloudflare 대역으로 좁히면 됩니다.
+
+지금 EMP-006 건이 pending → 완료로 바뀌는지 컨테이너의 폴링 워커를 지켜보는 중입니다. 실측상 최대 2~3분 걸릴 수 있습니다.
+
+---
+
+## 턴 25
+
+- 시작: 2026-09-03 16:14:47 / 종료: 2026-09-03 16:15:03 / 소요: 15s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+<task-notification>
+<task-id>bovf0l1ft</task-id>
+<tool-use-id>toolu_01R7HhM51Y2aBYJNiovdTiU6</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-hbrc-workspace-bitcom/821d4984-7e33-452b-b3f9-0c25d889666e/tasks/bovf0l1ft.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch EC2 poller finish the pending Background Check for EMP-006" completed (exit code 0)</summary>
+</task-notification>
+
+### 🤖 Claude
+
+<details><summary>도구 호출 1건</summary>
+
+- `Bash: Read poller watch result`
+  ```
+  16:14:31 CLEAR 1 None
+  
+  [exited with code 0]
+  ```
+
+</details>
+
+폴링 워커도 컨테이너 안에서 정상 동작합니다. EMP-006 건이 요청 후 약 18초, 폴링 1회 만에 PENDING → CLEAR로 바뀌었습니다.
+
+이로써 EC2 배포 검증은 완료입니다. 확인된 경로는 인터넷 → nginx(80) → `location /bitcom/api/` → 127.0.0.1:8000 컨테이너 → RDS, 그리고 컨테이너 → 외부 Background Check API까지입니다. 로그인, 권한 분리, 검증, 퇴사자 차단, Secure 쿠키, 스케줄러가 모두 확인됐습니다.
+
+남은 것은 Cloudflare Pages 쪽입니다.
+
+- 환경변수 `BACKEND_ORIGIN=http://15.165.171.81`, `NODE_VERSION=22`
+- 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`
+- 배포 후 pages.dev 주소로 로그인이 되면, EC2 보안그룹 80을 Cloudflare 대역으로 좁히면 됩니다.
+
+Pages 배포가 끝나면 주소를 알려주세요. 브라우저에서 로그인부터 Background Check까지 한 번 더 돌려보겠습니다.
 
 ---

@@ -32,7 +32,11 @@ curl -i http://127.0.0.1:8000/bitcom/api/auth/me            # 컨테이너 직�
 curl -i http://127.0.0.1:<nginx 포트>/bitcom/api/auth/me     # nginx 경유: 401
 ```
 
-Cloudflare Pages 환경변수 `BACKEND_ORIGIN=http://<EC2 퍼블릭 IP>:<nginx listen 포트>` (80 이면 포트 생략).
+Cloudflare Pages 환경변수 `BACKEND_ORIGIN`:
+
+- **IP 주소를 직접 쓰면 안 된다.** Pages Functions 의 `fetch` 는 호스트명 없는 IP 로의 요청을 차단한다 (Cloudflare error 1003 "Direct IP access not allowed").
+- 도메인이 없으면 sslip.io 로 IP 를 호스트명으로 감싼다: `BACKEND_ORIGIN=http://15.165.171.81.sslip.io` (포트가 80 이 아니면 `:포트` 추가).
+- 환경변수를 바꾼 뒤에는 Pages 를 다시 배포해야 반영된다 (Deployments → Retry deployment).
 
 ## 재배포
 
