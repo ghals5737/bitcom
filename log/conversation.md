@@ -1,8 +1,8 @@
 # AI 협업 대화 로그
 
 - 프로젝트: `/Users/hbrc/workspace/bitcom`
-- 생성 시각: 2026-09-03 15:35:15 (KST)
-- 세션 수: 1 / 턴 수: 18 / 응답 소요 합계: 126m 11s
+- 생성 시각: 2026-09-03 15:41:50 (KST)
+- 세션 수: 1 / 턴 수: 19 / 응답 소요 합계: 128m 08s
 
 ## 턴 요약
 
@@ -26,6 +26,7 @@
 | 16 | 2026-09-03 12:56:30 | 1m 15s | 4 | 밥먹고올게 지금까지한거 저장해줘 |
 | 17 | 2026-09-03 15:23:04 | 1m 06s | 2 | https://github.com/ghals5737/bitcom.git 원격 레포 주소야 지금까지 작업물 연 |
 | 18 | 2026-09-03 15:31:21 | 3m 51s | 12 | 루트디렉토리에서 부터 cloudflare pages배포할려는데 빌드커멘드 좀 알려줘 |
+| 19 | 2026-09-03 15:39:52 | 1m 56s | 4 | EC2 배포용 Dockerfile이랑 실행 스크립트 만들어줘 nginx는 이미 설치되어있어 거기기에 추가하는 |
 
 ---
 
@@ -2660,5 +2661,84 @@ Cloudflare Pages 설정값입니다. 저장소 루트를 프로젝트 루트로 
 - EC2의 Spring Boot는 `COOKIE_SECURE=true`로 띄우세요. 브라우저가 HTTPS(pages.dev)로 접속하므로 Secure 쿠키가 정상 동작합니다.
 - EC2 보안그룹 8080 인바운드는 Cloudflare IP 대역으로 제한하는 것을 권합니다. 프록시가 HTTP로 붙기 때문입니다.
 - BACKEND_ORIGIN 값을 아직 모르면 일단 빈 채로 배포해도 화면은 뜨고, API 호출만 "BACKEND_ORIGIN 미설정" 오류를 돌려줍니다.
+
+---
+
+## 턴 19
+
+- 시작: 2026-09-03 15:39:52 / 종료: 2026-09-03 15:41:48 / 소요: 1m 56s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+EC2 배포용 Dockerfile이랑 실행 스크립트 만들어줘 nginx는 이미 설치되어있어 거기기에 추가하는식으로 
+bitcom/api가 들어오면 docker 컨테이너로 포트 포워딩 포트번호는 8000번으로 만들어줘 .env 파일도 ec2에서 생성할거야
+
+### 🤖 Claude
+
+<details><summary>도구 호출 4건</summary>
+
+- `Bash: Build boot jar to confirm artifact name`
+  ```
+  total 115104
+  drwxr-xr-x@  3 hbrc  staff        96 Sep  3 15:40 .
+  drwxr-xr-x@ 10 hbrc  staff       320 Sep  3 15:40 ..
+  -rw-r--r--@  1 hbrc  staff  58929268 Sep  3 15:40 portal-0.1.0.jar
+  3:    id("org.springframework.boot") version "3.5.6"
+  4:    id("io.spring.dependency-management") version "1.1.7"
+  7: …
+  ```
+- `Write: /Users/hbrc/workspace/bitcom/backend/Dockerfile`
+  ```
+  File created successfully at: /Users/hbrc/workspace/bitcom/backend/Dockerfile (file state is current in your context — no need to Read it back)
+  ```
+- `Bash: Create Dockerfile support files, run script, nginx config, install script, and deploy README`
+  ```
+  deploy/ec2:
+  total 24
+  drwxr-xr-x@ 6 hbrc  staff   192 Sep  3 15:41 .
+  drwxr-xr-x@ 3 hbrc  staff    96 Sep  3 15:41 ..
+  -rw-r--r--@ 1 hbrc  staff  1833 Sep  3 15:41 README.md
+  -rwxr-xr-x@ 1 hbrc  staff   690 Sep  3 15:41 install-nginx.sh
+  drwxr-xr-x@ 3 hbrc  staff    96 Sep  3 15:41 nginx
+  -rwxr-xr-x@ 1 hb …
+  ```
+- `Bash: Commit and push EC2 deployment files`
+  ```
+  A  backend/.dockerignore
+  A  backend/.env.example
+  A  backend/Dockerfile
+  A  deploy/ec2/README.md
+  A  deploy/ec2/install-nginx.sh
+  A  deploy/ec2/nginx/bitcom-api.conf
+  A  deploy/ec2/run.sh
+  a822285 EC2 배포: Dockerfile, run.sh(호스트 8000→컨테이너 8080), nginx /bitcom/api 프록시 설정
+  ```
+
+</details>
+
+EC2용 Dockerfile, 실행 스크립트, nginx 추가 설정을 만들겠습니다. 구조는 컨테이너가 8080으로 듣고 호스트 8000에 매핑, nginx가 `/bitcom/api/`를 127.0.0.1:8000으로 넘기는 방식입니다. 먼저 빌드 산출물 jar 이름을 확인합니다.
+
+EC2 배포 파일을 만들어 커밋·푸시했습니다(`a822285`). 이 Mac에는 docker가 없어 이미지 빌드는 EC2에서 처음 실행될 때 검증됩니다. 그 외 jar 빌드와 스크립트 문법은 확인했습니다.
+
+**만든 파일**
+
+- [backend/Dockerfile](backend/Dockerfile): 2단계 빌드. Gradle 이미지에서 jar를 만들고 JRE 17 이미지에서 실행합니다. EC2에 JDK가 없어도 됩니다. 컨테이너 내부 포트는 8080이고, 비루트 사용자로 실행합니다.
+- [backend/.env.example](backend/.env.example): EC2에서 `backend/.env`로 복사해 채울 키 목록입니다. `COOKIE_SECURE=true`가 포함돼 있습니다. `.env`는 .gitignore와 .dockerignore 둘 다에서 제외됩니다.
+- [deploy/ec2/run.sh](deploy/ec2/run.sh): 이미지 빌드 → 기존 컨테이너 교체 → `127.0.0.1:8000`을 컨테이너 8080에 매핑 → 60초 안에 401 응답이 올 때까지 기동 대기. `--no-build`, `--logs` 옵션이 있습니다. 8000은 루프백에만 바인딩되어 외부에서 직접 접근할 수 없습니다.
+- [deploy/ec2/nginx/bitcom-api.conf](deploy/ec2/nginx/bitcom-api.conf): `/bitcom/api/`만 `127.0.0.1:8000`으로 넘기는 server 블록입니다. 외부 API 지연을 고려해 read timeout 60초로 두었습니다. 기존 server 블록이 있으면 location 블록만 옮겨 붙여도 됩니다.
+- [deploy/ec2/install-nginx.sh](deploy/ec2/install-nginx.sh): conf.d에 복사하고 `nginx -t` 후 reload합니다. 기존 파일이 있으면 백업합니다.
+- [deploy/ec2/README.md](deploy/ec2/README.md): 최초 설치 순서, 재배포, 보안그룹 표.
+
+**EC2에서 실행 순서**
+
+```bash
+git clone https://github.com/ghals5737/bitcom.git && cd bitcom
+cp backend/.env.example backend/.env && vi backend/.env
+sudo ./deploy/ec2/run.sh
+sudo ./deploy/ec2/install-nginx.sh
+```
+
+**확인해 주실 한 가지**: nginx server 블록을 `listen 8080`으로 두었습니다. Cloudflare Pages의 `BACKEND_ORIGIN`이 `http://<EC2 IP>:8080`을 가리키는 전제입니다. 기존 nginx가 이미 8080이나 80에서 다른 서비스를 하고 있으면 포트를 바꾸고 `BACKEND_ORIGIN`도 같이 맞추면 됩니다.
 
 ---

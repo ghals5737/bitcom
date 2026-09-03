@@ -9,9 +9,9 @@
 브라우저
   │ https://<project>.pages.dev            (Cloudflare Pages, 정적 Next.js)
   │   /            → 정적 파일
-  │   /bitcom/api/* → Pages Function 프록시 → http://<EC2>:8080/bitcom/api/*
+  │   /bitcom/api/* → Pages Function 프록시 → http://<EC2>:<nginx>/bitcom/api/*  (nginx → 127.0.0.1:8000 docker)
   ▼
-Spring Boot (EC2, 8080)
+Spring Boot (EC2 docker, 8000)
   ├─ Spring Security + 세션 테이블(RDB)        N1
   ├─ REST API /bitcom/api/**                          아래 4절
   ├─ @Scheduled 폴링 워커 (Background Check)   N3
@@ -23,7 +23,7 @@ Spring Boot (EC2, 8080)
 ### 도메인 없음 → 오리진 문제 해결 (결정)
 - Cloudflare Pages Functions(저장소 루트 `functions/bitcom/api/[[path]].ts`)가 `/bitcom/api/*`를 EC2로 프록시.
 - 브라우저는 pages.dev 단일 오리진만 봄 → 세션 쿠키 `SameSite=Lax; Secure; HttpOnly` 그대로 사용. Safari 서드파티 쿠키 차단 영향 없음.
-- Cloudflare → EC2 구간은 HTTP. EC2 보안그룹 인바운드 8080을 Cloudflare IP 대역으로만 허용. SSH는 내 IP만.
+- Cloudflare → EC2 구간은 HTTP. EC2 보안그룹 인바운드(nginx 포트)를 Cloudflare IP 대역으로만 허용. SSH는 내 IP만.
 - 반대 선택(sslip.io + Let's Encrypt로 EC2 HTTPS + SameSite=None): 구간 암호화는 되지만 Safari/ITP에서 로그인 실패 위험. DECISIONS 재료.
 - 로컬 개발: Next.js `rewrites`로 `/bitcom/api/*` → `localhost:8080` (프록시와 동일한 형태).
 
@@ -174,6 +174,6 @@ action: `EMPLOYEE_UPDATED`, `BGCHECK_REQUESTED`, `BGCHECK_VIEWED`, `BGCHECK_DELE
 
 1. RDS PostgreSQL (ap-northeast-2, db.t4g.micro, 퍼블릭 접근 불가, EC2 SG만 허용)
 2. EC2 (ap-northeast-2, t3.small, Amazon Linux 2023, docker) — Spring Boot 이미지 실행, 환경변수로 DB·외부 API URL
-3. Cloudflare Pages — 루트 디렉터리 = 저장소 루트, 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`, 환경변수 `BACKEND_ORIGIN=http://<EC2>:8080`, `NODE_VERSION=22`
-4. EC2 SG: 8080 인바운드 = Cloudflare IP 대역, 22 = 내 IP
+3. Cloudflare Pages — 루트 디렉터리 = 저장소 루트, 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`, 환경변수 `BACKEND_ORIGIN=http://<EC2>:<nginx 포트>`, `NODE_VERSION=22`
+4. EC2 SG: nginx 포트 인바운드 = Cloudflare IP 대역, 22 = 내 IP, 8000 은 미개방(127.0.0.1)
 5. 제출용 계정 확인, 스모크 테스트(로그인 → 생성 → BGC → 퇴사 → 재로그인 거부)

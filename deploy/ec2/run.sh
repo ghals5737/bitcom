@@ -10,7 +10,7 @@ BACKEND="$ROOT/backend"
 IMAGE="bitcom-portal:latest"
 NAME="bitcom-portal"
 HOST_PORT="${HOST_PORT:-8000}"      # nginx 가 프록시하는 호스트 포트
-CONTAINER_PORT=8080
+CONTAINER_PORT=8000                  # 컨테이너 안 Spring Boot 포트 (SERVER_PORT)
 ENV_FILE="$BACKEND/.env"
 
 if [[ "${1:-}" == "--logs" ]]; then

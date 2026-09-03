@@ -13,9 +13,9 @@ WORKDIR /app
 RUN useradd --system --uid 1001 portal
 COPY --from=build /src/build/libs/portal-*.jar /app/app.jar
 USER portal
-# 컨테이너 내부 포트. 호스트에서는 run.sh 가 8000 → 8080 으로 매핑한다.
-EXPOSE 8080
-ENV SERVER_PORT=8080 \
+# 컨테이너 내부 포트 8000. 호스트에서도 run.sh 가 127.0.0.1:8000 으로 매핑한다.
+EXPOSE 8000
+ENV SERVER_PORT=8000 \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -Duser.timezone=UTC"
 # 헬스체크는 이미지에 curl 이 없어 run.sh 가 호스트에서 수행한다.
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
