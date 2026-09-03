@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: portal
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # 스키마는 Flyway가 관리, Entity는 검증만
+    properties:
+      hibernate.default_batch_fetch_size: 50
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: always
+    time-zone: UTC
+    deserialization:
+      fail-on-unknown-properties: true   # 규칙 7: request DTO 에 없는 필드는 400
+
+server:
+  port: 8080
+  servlet:
+    context-path: /bitcom/api        # 모든 API는 /bitcom/api 로 시작
+  error:
+    include-message: never
+    include-stacktrace: never
+
+app:
+  session:
+    idle-minutes: 30                 # N1: 미사용 30분 만료
+    absolute-hours: 8                # N1: 절대 상한
+    cookie-name: SESSION
+    cookie-secure: ${COOKIE_SECURE:false}   # 배포(HTTPS 프록시 뒤)에서는 true
+  auth:
+    lock-threshold: 5                # N2: 연속 실패 5회 → 잠금
+  seed:
+    admin-password: ${SEED_ADMIN_PASSWORD:admin1234!}
+    employee-password: ${SEED_EMPLOYEE_PASSWORD:emp1234!}
+
+# N3: 외부 Background Check API. 수치는 MEASUREMENTS.md 실측값으로 확정한다.
+bgcheck:
+  base-url: ${BACKGROUND_URL}
+  connect-timeout-ms: 3000
+  read-timeout-ms: 35000           # 실측: 응답이 ~30s 부근에 몰림(200/503). 이보다 짧으면 정상 응답을 버리게 됨
+  post-max-attempts: 3             # POST 5xx 시 재시도 횟수
+  post-retry-backoff-ms: 1000      # POST 재시도 간격
+  poll-interval-ms: 5000           # PENDING 건 GET 폴링 주기 (스케줄러 fixedDelay)
+  poll-max-elapsed-seconds: 240    # 실측: pending→완료 p95 153s (서버 기준). 이 시간 넘으면 TIMEOUT
+  poll-max-attempts: 40            # 폴링 상한 (횟수 기준 중단 조건)
+
+logging:
+  level:
+    com.bitcom.portal: INFO
+    org.springframework.security: WARN

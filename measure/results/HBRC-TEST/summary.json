@@ -1,0 +1,1556 @@
+{
+  "run_id": "HBRC-TEST",
+  "args": {
+    "base_url": "https://54capvm12g.execute-api.ap-northeast-2.amazonaws.com",
+    "run_id": "HBRC-TEST",
+    "phases": "contract,duplicate,lifecycle,latency,concurrency",
+    "timeout": 30.0,
+    "quick": true,
+    "dup_n": 5,
+    "dup_gap": 0.5,
+    "lc_n": 4,
+    "lc_interval": 2.0,
+    "lc_timeout": 90,
+    "lat_n": 40,
+    "lat_gap": 0.2,
+    "cc_levels": "1,5,10",
+    "cc_per_level": 10,
+    "cc_post": false,
+    "cc_cooldown": 5.0
+  },
+  "started_at": "2026-09-03T00:46:49.804442+00:00",
+  "contract": {
+    "probes": [
+      {
+        "tag": "POST valid",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-001",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 201,
+        "latency_ms": 403.4,
+        "body": {
+          "checkId": "CHK-7ae94ff1-4644-499a-a346-9727d9fd836b",
+          "employeeId": "HBRC-TEST-CT-001",
+          "status": "flagged",
+          "createdAt": "2026-09-03T00:46:50.040Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "214",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7IiJTIE0EM2g="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "estimatedCompletionSeconds"
+          ],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST missing employeeId",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 400,
+        "latency_ms": 125.9,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: employeeId",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "87",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7LgueIE0EMOw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST missing firstName",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-001",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 400,
+        "latency_ms": 99.0,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: firstName",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "86",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7MhHqIE0ENgg="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST missing lastName",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-001",
+          "firstName": "Minjun",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 400,
+        "latency_ms": 96.6,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: lastName",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "85",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7NiJmoE0EM2g="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST missing dateOfBirth",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-001",
+          "firstName": "Minjun",
+          "lastName": "Kim"
+        },
+        "status": 400,
+        "latency_ms": 82.7,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: dateOfBirth",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "88",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7OhLYoE0EM_Q="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST dob=null",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-EMP-007",
+          "firstName": "Seoyeon",
+          "lastName": "Lee",
+          "dateOfBirth": null
+        },
+        "status": 400,
+        "latency_ms": 85.4,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: dateOfBirth",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "88",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7PiRjoE0EM6Q="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST dob=''",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-EMP-007",
+          "firstName": "Seoyeon",
+          "lastName": "Lee",
+          "dateOfBirth": ""
+        },
+        "status": 400,
+        "latency_ms": 84.2,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: dateOfBirth",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "88",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7Qg-KoE0EMSw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST korean names",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-KO",
+          "firstName": "민준",
+          "lastName": "김",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 201,
+        "latency_ms": 122.6,
+        "body": {
+          "checkId": "CHK-ff841716-1b50-4a3d-adea-ce2edaedbb7a",
+          "employeeId": "HBRC-TEST-CT-KO",
+          "status": "clear",
+          "createdAt": "2026-09-03T00:46:50.873Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "211",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7RiEZoE0EMVw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "estimatedCompletionSeconds"
+          ],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST korean fullname in lastName",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-KO2",
+          "firstName": "",
+          "lastName": "김민준",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 400,
+        "latency_ms": 80.9,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: firstName",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:50 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "86",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7SjC7oE0EMMQ="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST empty strings",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-EMPTY",
+          "firstName": "",
+          "lastName": "",
+          "dateOfBirth": ""
+        },
+        "status": 400,
+        "latency_ms": 86.2,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: firstName",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "86",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7Tg6lIE0EM5Q="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST compound surname",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-NG",
+          "firstName": "Seojun",
+          "lastName": "Namgung",
+          "dateOfBirth": "1988-07-21"
+        },
+        "status": 201,
+        "latency_ms": 94.1,
+        "body": {
+          "checkId": "CHK-af0dab43-04e9-491a-b909-bd1f77f63713",
+          "employeeId": "HBRC-TEST-CT-NG",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:46:51.150Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "213",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7UhpEIE0EM0A="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "estimatedCompletionSeconds"
+          ],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST dob slash format",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990/03/15"
+        },
+        "status": 201,
+        "latency_ms": 120.2,
+        "body": {
+          "checkId": "CHK-77db273e-4066-45fb-a32d-a9375c084fe8",
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "status": "clear",
+          "createdAt": "2026-09-03T00:46:51.257Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "212",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7Vg9zoE0EMQw="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST dob future",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "2099-01-01"
+        },
+        "status": 201,
+        "latency_ms": 150.3,
+        "body": {
+          "checkId": "CHK-655626c6-7f71-419c-8424-013368e65c27",
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:46:51.396Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "214",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7Wif4IE0EMYA="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST dob invalid day",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-02-30"
+        },
+        "status": 201,
+        "latency_ms": 124.5,
+        "body": {
+          "checkId": "CHK-c77b9a77-5073-4f2c-8c6c-682f197e0c52",
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:46:51.520Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "214",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7XiKbIE0EMdQ="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST dob not a date",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "abc"
+        },
+        "status": 201,
+        "latency_ms": 102.1,
+        "body": {
+          "checkId": "CHK-554cb2ab-e1c1-4fa8-8008-e641848add06",
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "status": "clear",
+          "createdAt": "2026-09-03T00:46:51.656Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "212",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7ZjpFoE0EMNg="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST dob datetime",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-03-15T00:00:00Z"
+        },
+        "status": 201,
+        "latency_ms": 117.7,
+        "body": {
+          "checkId": "CHK-86f5942d-3d66-4b0b-a167-534230e4f26d",
+          "employeeId": "HBRC-TEST-CT-DOB",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:46:51.753Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "214",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7ag7MIE0EM5Q="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST extra fields",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-CT-EXTRA",
+          "firstName": "Minjun",
+          "lastName": "Kim",
+          "dateOfBirth": "1990-03-15",
+          "foo": "bar",
+          "status": "clear"
+        },
+        "status": 201,
+        "latency_ms": 101.8,
+        "body": {
+          "checkId": "CHK-e81cd285-03a8-46bc-8eae-9f5c08793df4",
+          "employeeId": "HBRC-TEST-CT-EXTRA",
+          "status": "flagged",
+          "createdAt": "2026-09-03T00:46:51.868Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:51 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "216",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7bi6XIE0EMQQ="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "estimatedCompletionSeconds"
+          ],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "POST employeeId numeric",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": 12345,
+          "firstName": "A",
+          "lastName": "B",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 500,
+        "latency_ms": 176.2,
+        "body": {
+          "message": "Internal Server Error"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "35",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7cgJ5IE0EMpA="
+        },
+        "error": null,
+        "status_in_spec": false
+      },
+      {
+        "tag": "POST malformed json",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": "{not json",
+        "status": 400,
+        "latency_ms": 85.8,
+        "body": {
+          "error": "Bad Request",
+          "message": "Invalid JSON in request body",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "81",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7egRqIE0EMiw="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST empty body",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": "",
+        "status": 400,
+        "latency_ms": 91.8,
+        "body": {
+          "error": "Bad Request",
+          "message": "Missing required field: employeeId",
+          "statusCode": 400
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "87",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7fgRsoE0EMiw="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST text/plain content-type",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": "{\"employeeId\": \"HBRC-TEST-CT-CT\", \"firstName\": \"A\", \"lastName\": \"B\", \"dateOfBirth\": \"1990-03-15\"}",
+        "status": 201,
+        "latency_ms": 141.0,
+        "body": {
+          "checkId": "CHK-ea3be542-f20c-41d8-9f14-016c34d64347",
+          "employeeId": "HBRC-TEST-CT-CT",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:46:52.348Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "213",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7gijKoE0EMtw="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "POST very long employeeId",
+        "method": "POST",
+        "path": "/background-checks",
+        "req_body": {
+          "employeeId": "HBRC-TEST-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "firstName": "A",
+          "lastName": "B",
+          "dateOfBirth": "1990-03-15"
+        },
+        "status": 201,
+        "latency_ms": 160.0,
+        "body": {
+          "checkId": "CHK-f0227cd7-fcde-48da-a88e-6a8fc12414c1",
+          "employeeId": "HBRC-TEST-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "status": "clear",
+          "createdAt": "2026-09-03T00:46:52.497Z",
+          "message": "Background check request has been submitted successfully."
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "706",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7hg_uoE0EMSw="
+        },
+        "error": null,
+        "status_in_spec": true
+      },
+      {
+        "tag": "GET valid checkId",
+        "method": "GET",
+        "path": "/background-checks/CHK-7ae94ff1-4644-499a-a346-9727d9fd836b",
+        "req_body": null,
+        "status": 503,
+        "latency_ms": 77.7,
+        "body": {
+          "error": "Service Unavailable",
+          "message": "The service is currently overloaded. Please retry after the specified time.",
+          "retryAfter": 30,
+          "statusCode": 503
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:46:52 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "152",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7jgSAoE0EMiw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "checkId",
+            "employeeId",
+            "firstName",
+            "lastName",
+            "dateOfBirth",
+            "status",
+            "criminalRecord",
+            "educationVerified",
+            "employmentVerified",
+            "creditScore",
+            "createdAt",
+            "completedAt"
+          ],
+          "not_in_spec": [
+            "error",
+            "message",
+            "retryAfter",
+            "statusCode"
+          ]
+        }
+      },
+      {
+        "tag": "GET nonexistent well-formed checkId",
+        "method": "GET",
+        "path": "/background-checks/CHK-00000000-0000-0000-0000-000000000000",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 26060.4,
+        "body": {
+          "error": "Not Found",
+          "message": "Background check not found: CHK-00000000-0000-0000-0000-000000000000",
+          "statusCode": 404
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:18 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "119",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN7jgZloE0EMUg="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "GET malformed checkId",
+        "method": "GET",
+        "path": "/background-checks/not-a-check-id",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 261.1,
+        "body": {
+          "error": "Not Found",
+          "message": "Background check not found: not-a-check-id",
+          "statusCode": 404
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:18 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "93",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN_ojp4oE0EMqg="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "GET empty checkId (trailing slash)",
+        "method": "GET",
+        "path": "/background-checks/",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 85.7,
+        "body": {
+          "error": "Not Found",
+          "message": "Unknown route: GET /background-checks/",
+          "statusCode": 404
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:19 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "89",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN_qiA9oE0EMWA="
+        },
+        "error": null
+      },
+      {
+        "tag": "GET list valid",
+        "method": "GET",
+        "path": "/background-checks?employeeId=HBRC-TEST-CT-001",
+        "req_body": null,
+        "status": 200,
+        "latency_ms": 20052.1,
+        "body": {
+          "employeeId": "HBRC-TEST-CT-001",
+          "checks": [
+            {
+              "checkId": "CHK-7ae94ff1-4644-499a-a346-9727d9fd836b",
+              "status": "flagged",
+              "createdAt": "2026-09-03T00:46:50.040Z",
+              "completedAt": "2026-09-03T00:46:50.040Z"
+            }
+          ],
+          "totalCount": 1
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:39 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "213",
+          "Connection": "close",
+          "Apigw-Requestid": "DGN_rgx_oE0EMUg="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "GET list unknown employeeId",
+        "method": "GET",
+        "path": "/background-checks?employeeId=HBRC-TEST-NOBODY",
+        "req_body": null,
+        "status": 500,
+        "latency_ms": 58.8,
+        "body": {
+          "error": "Internal Server Error",
+          "message": "Service temporarily unavailable. Please try again later.",
+          "statusCode": 500
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:39 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "119",
+          "Connection": "close",
+          "Apigw-Requestid": "DGOC0ho4IE0EMQw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [
+            "employeeId",
+            "checks",
+            "totalCount"
+          ],
+          "not_in_spec": [
+            "error",
+            "message",
+            "statusCode"
+          ]
+        }
+      },
+      {
+        "tag": "GET list without employeeId",
+        "method": "GET",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 500,
+        "latency_ms": 69.3,
+        "body": {
+          "error": "Internal Server Error",
+          "message": "Service temporarily unavailable. Please try again later.",
+          "statusCode": 500
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:47:39 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "119",
+          "Connection": "close",
+          "Apigw-Requestid": "DGOC0jJQoE0EMIw="
+        },
+        "error": null,
+        "status_in_spec": true,
+        "field_diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      },
+      {
+        "tag": "GET list empty employeeId",
+        "method": "GET",
+        "path": "/background-checks?employeeId=",
+        "req_body": null,
+        "status": null,
+        "latency_ms": 30029.9,
+        "body": null,
+        "headers": {},
+        "error": "timeout: The read operation timed out",
+        "status_in_spec": false,
+        "field_diff": {
+          "missing_from_response": [
+            "error",
+            "message",
+            "statusCode"
+          ],
+          "not_in_spec": [],
+          "body_type": "NoneType"
+        }
+      },
+      {
+        "tag": "PUT /background-checks",
+        "method": "PUT",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 56.5,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHhgmfoE0EPaw="
+        },
+        "error": null
+      },
+      {
+        "tag": "DELETE /background-checks",
+        "method": "DELETE",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 47.9,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHigoeoE0EPQQ="
+        },
+        "error": null
+      },
+      {
+        "tag": "PATCH /background-checks",
+        "method": "PATCH",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 55.2,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHiguWIE0EP5Q="
+        },
+        "error": null
+      },
+      {
+        "tag": "OPTIONS /background-checks",
+        "method": "OPTIONS",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 204,
+        "latency_ms": 49.4,
+        "body": null,
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Connection": "close",
+          "apigw-requestid": "DGOHjh7BIE0EPbA="
+        },
+        "error": null
+      },
+      {
+        "tag": "HEAD /background-checks",
+        "method": "HEAD",
+        "path": "/background-checks",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 49.2,
+        "body": null,
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHjhf8IE0EPCQ="
+        },
+        "error": null
+      },
+      {
+        "tag": "DELETE /background-checks/{id}",
+        "method": "DELETE",
+        "path": "/background-checks/CHK-7ae94ff1-4644-499a-a346-9727d9fd836b",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 50.2,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHkhtjoE0EPMw="
+        },
+        "error": null
+      },
+      {
+        "tag": "GET /",
+        "method": "GET",
+        "path": "/",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 58.1,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHlgc_oE0EPLQ="
+        },
+        "error": null
+      },
+      {
+        "tag": "GET /health",
+        "method": "GET",
+        "path": "/health",
+        "req_body": null,
+        "status": 404,
+        "latency_ms": 47.9,
+        "body": {
+          "message": "Not Found"
+        },
+        "headers": {
+          "Date": "Thu, 03 Sep 2026 00:48:09 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "23",
+          "Connection": "close",
+          "apigw-requestid": "DGOHliY-oE0EPCw="
+        },
+        "error": null
+      }
+    ],
+    "n": 38,
+    "observed_header_names": {
+      "date": 37,
+      "content-type": 36,
+      "content-length": 36,
+      "connection": 37,
+      "apigw-requestid": 37
+    },
+    "retry_after_header_seen": [],
+    "retry_after_body_seen": [
+      {
+        "tag": "GET valid checkId",
+        "status": 503,
+        "retryAfter": 30
+      }
+    ],
+    "list_item_field_diffs": [
+      {
+        "tag": "GET list valid",
+        "diff": {
+          "missing_from_response": [],
+          "not_in_spec": []
+        }
+      }
+    ],
+    "check_id": "CHK-7ae94ff1-4644-499a-a346-9727d9fd836b"
+  },
+  "duplicate": {
+    "employeeId": "HBRC-TEST-DUP-001",
+    "n": 5,
+    "gap_s": 0.5,
+    "status_codes": {
+      "n": 5,
+      "counts": {
+        "201": 5
+      },
+      "ratio": {
+        "201": 1.0
+      }
+    },
+    "latency": {
+      "n": 5,
+      "min": 94.4,
+      "p50": 116.4,
+      "p90": 1377.8,
+      "p95": 1377.8,
+      "p99": 1377.8,
+      "max": 1377.8,
+      "mean": 361.5
+    },
+    "check_ids": [
+      "CHK-292ca5e7-3a14-4871-b232-45de8c9ab76b",
+      "CHK-74bee0bf-7df7-475c-88d7-6c006702cf7d",
+      "CHK-202ce2b5-2c21-4b87-bbdc-fc7c1e89c866",
+      "CHK-5d9033bb-d4a7-43ff-8368-faffd36668d5",
+      "CHK-4ac18e38-5d2d-4577-a056-0a76497bf244"
+    ],
+    "unique_check_ids": 5,
+    "initial_statuses": {
+      "flagged": 1,
+      "pending": 4
+    },
+    "list_totalCount_before": null,
+    "list_totalCount_after": 5,
+    "list_after_body": {
+      "employeeId": "HBRC-TEST-DUP-001",
+      "checks": [
+        {
+          "checkId": "CHK-202ce2b5-2c21-4b87-bbdc-fc7c1e89c866",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:48:12.509Z",
+          "completedAt": null
+        },
+        {
+          "checkId": "CHK-292ca5e7-3a14-4871-b232-45de8c9ab76b",
+          "status": "flagged",
+          "createdAt": "2026-09-03T00:48:10.074Z",
+          "completedAt": "2026-09-03T00:48:10.074Z"
+        },
+        {
+          "checkId": "CHK-4ac18e38-5d2d-4577-a056-0a76497bf244",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:48:13.724Z",
+          "completedAt": null
+        },
+        {
+          "checkId": "CHK-5d9033bb-d4a7-43ff-8368-faffd36668d5",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:48:13.112Z",
+          "completedAt": null
+        },
+        {
+          "checkId": "CHK-74bee0bf-7df7-475c-88d7-6c006702cf7d",
+          "status": "pending",
+          "createdAt": "2026-09-03T00:48:11.891Z",
+          "completedAt": null
+        }
+      ],
+      "totalCount": 5
+    },
+    "post_different_name_same_id": {
+      "status": 201,
+      "body": {
+        "checkId": "CHK-9953a9fd-fffb-4cb7-9d5c-4643a271aa3a",
+        "employeeId": "HBRC-TEST-DUP-001",
+        "status": "pending",
+        "createdAt": "2026-09-03T00:48:14.965Z",
+        "message": "Background check request has been submitted successfully."
+      }
+    },
+    "list_totalCount_after_different_name": null
+  },
+  "lifecycle": {
+    "n_created": 4,
+    "poll_interval_s": 2.0,
+    "timeout_s": 90,
+    "post_status_codes": {
+      "n": 4,
+      "counts": {
+        "201": 4
+      },
+      "ratio": {
+        "201": 1.0
+      }
+    },
+    "initial_status_dist": {
+      "pending": 2,
+      "clear": 2
+    },
+    "final_status_dist": {
+      "flagged": 2,
+      "clear": 2
+    },
+    "n_reached_final": 4,
+    "n_timed_out": 0,
+    "time_to_final_s_all": {
+      "n": 4,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 33.1,
+      "max": 33.1,
+      "mean": 12.66
+    },
+    "time_to_final_s_pending_only": {
+      "n": 2,
+      "min": 17.54,
+      "p50": 33.1,
+      "p95": 33.1,
+      "max": 33.1,
+      "mean": 25.32
+    },
+    "server_side_duration_s": {
+      "n": 2,
+      "min": 17.486,
+      "p50": 33.084,
+      "p95": 33.084,
+      "max": 33.084,
+      "mean": 25.29
+    },
+    "estimatedCompletionSeconds_values": [],
+    "transitions_seen": {
+      "pending -> flagged": 2,
+      "clear": 2
+    },
+    "poll_http_codes_total": {
+      "500": 5,
+      "200": 3
+    },
+    "poll_count_per_check": [
+      3,
+      0,
+      0,
+      5
+    ],
+    "final_body_field_diffs": {
+      "{\"missing_from_response\": [], \"not_in_spec\": []}": 2,
+      "{\"missing_from_response\": [\"firstName\", \"lastName\", \"dateOfBirth\", \"criminalRecord\", \"educationVerified\", \"employmentVerified\", \"creditScore\", \"completedAt\"], \"not_in_spec\": [\"message\"]}": 2
+    },
+    "final_value_dist": {
+      "status": {
+        "flagged": 2,
+        "clear": 2
+      },
+      "criminalRecord": {
+        "False": 1,
+        "True": 1
+      },
+      "educationVerified": {
+        "True": 1,
+        "False": 1
+      },
+      "employmentVerified": {
+        "True": 2
+      },
+      "creditScore": {
+        "good": 1,
+        "fair": 1
+      }
+    },
+    "check_ids": [
+      "CHK-5ff86b93-21dd-4b2a-990d-7880a360b63f",
+      "CHK-0dc89382-b2e5-413a-a64c-ac496b42a2f0",
+      "CHK-85b6a223-cc77-4a74-abc7-5e33627bbb68",
+      "CHK-f1cc8992-bfac-4e63-a582-3b762b2440e0"
+    ]
+  },
+  "latency": {
+    "n": 40,
+    "gap_s": 0.2,
+    "latency_all": {
+      "n": 40,
+      "min": 66.9,
+      "p50": 132.3,
+      "p90": 30035.3,
+      "p95": 30037.2,
+      "p99": 30064.3,
+      "max": 30064.3,
+      "mean": 6605.1
+    },
+    "status_codes": {
+      "n": 40,
+      "counts": {
+        "200": 16,
+        "500": 16,
+        "503": 2,
+        "None": 6
+      },
+      "ratio": {
+        "200": 0.4,
+        "500": 0.4,
+        "503": 0.05,
+        "None": 0.15
+      }
+    },
+    "latency_by_status": {
+      "200": {
+        "n": 16,
+        "min": 126.9,
+        "p50": 557.2,
+        "p90": 17355.0,
+        "p95": 28734.4,
+        "p99": 28734.4,
+        "max": 28734.4,
+        "mean": 5157.6
+      },
+      "500": {
+        "n": 16,
+        "min": 66.9,
+        "p50": 74.4,
+        "p90": 98.8,
+        "p95": 127.9,
+        "p99": 127.9,
+        "max": 127.9,
+        "mean": 80.4
+      },
+      "503": {
+        "n": 2,
+        "min": 71.6,
+        "p50": 76.5,
+        "p90": 76.5,
+        "p95": 76.5,
+        "p99": 76.5,
+        "max": 76.5,
+        "mean": 74.0
+      },
+      "None": {
+        "n": 6,
+        "min": 30031.9,
+        "p50": 30037.2,
+        "p90": 30064.3,
+        "p95": 30064.3,
+        "p99": 30064.3,
+        "max": 30064.3,
+        "mean": 30041.1
+      }
+    },
+    "latency_first_half": {
+      "n": 20,
+      "min": 66.9,
+      "p50": 83.2,
+      "p90": 30031.9,
+      "p95": 30037.2,
+      "p99": 30037.2,
+      "max": 30037.2,
+      "mean": 6548.2
+    },
+    "latency_second_half": {
+      "n": 20,
+      "min": 71.6,
+      "p50": 195.7,
+      "p90": 30035.6,
+      "p95": 30064.3,
+      "p99": 30064.3,
+      "max": 30064.3,
+      "mean": 6661.9
+    },
+    "non_200_bodies": {
+      "null": 6,
+      "{\"error\": \"Internal Server Error\", \"message\": \"Service temporarily unavailable. Please try again later.\", \"statusCode\": 500}": 16,
+      "{\"error\": \"Service Unavailable\", \"message\": \"The service is currently overloaded. Please retry after the specified time.\", \"retryAfter\": 30, \"statusCode\": 503}": 2
+    },
+    "retry_after_headers": [],
+    "errors": {
+      "timeout: The read operation timed out": 6
+    },
+    "latencies_ms": [
+      30031.9,
+      72.0,
+      30035.3,
+      565.0,
+      632.1,
+      66.9,
+      80.1,
+      8334.3,
+      126.9,
+      132.3,
+      69.3,
+      30037.2,
+      76.8,
+      69.3,
+      83.2,
+      71.2,
+      17355.0,
+      72.7,
+      78.2,
+      12975.1,
+      74.2,
+      30042.2,
+      83.2,
+      74.4,
+      557.2,
+      71.6,
+      11137.4,
+      28734.4,
+      30035.6,
+      283.1,
+      300.7,
+      150.8,
+      459.9,
+      98.8,
+      76.5,
+      127.9,
+      582.4,
+      195.7,
+      88.7,
+      30064.3
+    ]
+  },
+  "concurrency": {
+    "levels": [
+      {
+        "concurrency": 1,
+        "kind": "GET",
+        "n": 10,
+        "wall_s": 49.01,
+        "throughput_rps": 0.2,
+        "latency": {
+          "n": 10,
+          "min": 58.2,
+          "p50": 77.8,
+          "p90": 18213.2,
+          "p95": 18213.2,
+          "p99": 18213.2,
+          "max": 18213.2,
+          "mean": 4900.2
+        },
+        "status_codes": {
+          "n": 10,
+          "counts": {
+            "200": 4,
+            "500": 4,
+            "503": 2
+          },
+          "ratio": {
+            "200": 0.4,
+            "500": 0.4,
+            "503": 0.2
+          }
+        },
+        "errors": {},
+        "retry_after_values": {},
+        "non_200_bodies": {
+          "{\"error\": \"Service Unavailable\", \"message\": \"The service is currently overloaded. Please retry after the specified time.\", \"retryAfter\": 30, \"statusCode\": 503}": 2,
+          "{\"error\": \"Internal Server Error\", \"message\": \"Service temporarily unavailable. Please try again later.\", \"statusCode\": 500}": 4
+        }
+      },
+      {
+        "concurrency": 5,
+        "kind": "GET",
+        "n": 10,
+        "wall_s": 30.57,
+        "throughput_rps": 0.33,
+        "latency": {
+          "n": 10,
+          "min": 45.9,
+          "p50": 1533.8,
+          "p90": 30046.8,
+          "p95": 30046.8,
+          "p99": 30046.8,
+          "max": 30046.8,
+          "mean": 8627.6
+        },
+        "status_codes": {
+          "n": 10,
+          "counts": {
+            "200": 4,
+            "500": 3,
+            "503": 1,
+            "None": 2
+          },
+          "ratio": {
+            "200": 0.4,
+            "500": 0.3,
+            "503": 0.1,
+            "None": 0.2
+          }
+        },
+        "errors": {
+          "timeout: The read operation timed out": 2
+        },
+        "retry_after_values": {},
+        "non_200_bodies": {
+          "{\"error\": \"Internal Server Error\", \"message\": \"Service temporarily unavailable. Please try again later.\", \"statusCode\": 500}": 3,
+          "null": 2,
+          "{\"error\": \"Service Unavailable\", \"message\": \"The service is currently overloaded. Please retry after the specified time.\", \"retryAfter\": 30, \"statusCode\": 503}": 1
+        }
+      },
+      {
+        "concurrency": 10,
+        "kind": "GET",
+        "n": 10,
+        "wall_s": 30.06,
+        "throughput_rps": 0.33,
+        "latency": {
+          "n": 10,
+          "min": 92.7,
+          "p50": 698.4,
+          "p90": 30056.0,
+          "p95": 30056.0,
+          "p99": 30056.0,
+          "max": 30056.0,
+          "mean": 7028.4
+        },
+        "status_codes": {
+          "n": 10,
+          "counts": {
+            "200": 3,
+            "500": 5,
+            "None": 2
+          },
+          "ratio": {
+            "200": 0.3,
+            "500": 0.5,
+            "None": 0.2
+          }
+        },
+        "errors": {
+          "timeout: The read operation timed out": 2
+        },
+        "retry_after_values": {},
+        "non_200_bodies": {
+          "null": 2,
+          "{\"error\": \"Internal Server Error\", \"message\": \"Service temporarily unavailable. Please try again later.\", \"statusCode\": 500}": 5
+        }
+      }
+    ],
+    "per_level": 10
+  },
+  "finished_at": "2026-09-03T00:55:25.651516+00:00",
+  "status_by_phase": {
+    "contract": {
+      "201": 11,
+      "400": 10,
+      "500": 3,
+      "503": 1,
+      "404": 10,
+      "200": 1,
+      "None": 1,
+      "204": 1
+    },
+    "duplicate": {
+      "500": 2,
+      "201": 6,
+      "200": 1
+    },
+    "lifecycle": {
+      "201": 4,
+      "500": 5,
+      "200": 3
+    },
+    "latency": {
+      "None": 6,
+      "500": 16,
+      "200": 16,
+      "503": 2
+    },
+    "concurrency": {
+      "503": 3,
+      "200": 11,
+      "500": 12,
+      "None": 4
+    }
+  },
+  "total_requests": 129
+}

@@ -1,0 +1,241 @@
+{
+  "run_id": "HBRC-TEST2",
+  "args": {
+    "base_url": "https://54capvm12g.execute-api.ap-northeast-2.amazonaws.com",
+    "run_id": "HBRC-TEST2",
+    "phases": "lifecycle,latency",
+    "timeout": 60.0,
+    "quick": false,
+    "dup_n": 10,
+    "dup_gap": 0.5,
+    "lc_n": 3,
+    "lc_interval": 2.0,
+    "lc_timeout": 90.0,
+    "lat_n": 10,
+    "lat_gap": 0.2,
+    "cc_levels": "1,5,10,20,50",
+    "cc_per_level": 50,
+    "cc_post": false,
+    "cc_cooldown": 5.0
+  },
+  "started_at": "2026-09-03T00:56:17.893437+00:00",
+  "lifecycle": {
+    "n_created": 3,
+    "poll_interval_s": 2.0,
+    "timeout_s": 90.0,
+    "post_status_codes": {
+      "n": 3,
+      "counts": {
+        "201": 3
+      },
+      "ratio": {
+        "201": 1.0
+      }
+    },
+    "initial_status_dist": {
+      "flagged": 1,
+      "clear": 1,
+      "pending": 1
+    },
+    "final_status_dist": {
+      "flagged": 1,
+      "clear": 2
+    },
+    "n_reached_final": 3,
+    "n_timed_out": 0,
+    "time_to_final_s_all": {
+      "n": 3,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 38.67,
+      "max": 38.67,
+      "mean": 12.89
+    },
+    "time_to_final_s_pending_only": {
+      "n": 1,
+      "min": 38.67,
+      "p50": 38.67,
+      "p95": 38.67,
+      "max": 38.67,
+      "mean": 38.67
+    },
+    "server_side_duration_s": {
+      "n": 3,
+      "min": 0.0,
+      "p50": 0.0,
+      "p95": 38.613,
+      "max": 38.613,
+      "mean": 12.87
+    },
+    "estimatedCompletionSeconds_values": [],
+    "transitions_seen": {
+      "flagged": 1,
+      "clear": 1,
+      "pending -> clear": 1
+    },
+    "poll_http_codes_total": {
+      "503": 4,
+      "200": 3,
+      "500": 4
+    },
+    "poll_count_per_check": [
+      3,
+      4,
+      4
+    ],
+    "final_body_field_diffs": {
+      "{\"missing_from_response\": [], \"not_in_spec\": []}": 3
+    },
+    "final_value_dist": {
+      "status": {
+        "flagged": 1,
+        "clear": 2
+      },
+      "criminalRecord": {
+        "False": 3
+      },
+      "educationVerified": {
+        "True": 2,
+        "False": 1
+      },
+      "employmentVerified": {
+        "True": 2,
+        "False": 1
+      },
+      "creditScore": {
+        "good": 2,
+        "poor": 1
+      }
+    },
+    "check_ids": [
+      "CHK-e294a332-ce83-4dcc-b46d-db07d3bd7209",
+      "CHK-1fadc047-13cd-402e-8ec9-3c6d1280ee58",
+      "CHK-c1395417-25b3-430a-b98d-559acbc16cd3"
+    ]
+  },
+  "latency": {
+    "n": 10,
+    "gap_s": 0.2,
+    "latency_all": {
+      "n": 10,
+      "min": 56.7,
+      "p50": 249.1,
+      "p90": 30069.0,
+      "p95": 30069.0,
+      "p99": 30069.0,
+      "max": 30069.0,
+      "mean": 6641.8
+    },
+    "latency_incl_timeouts": {
+      "n": 10,
+      "min": 56.7,
+      "p50": 249.1,
+      "p90": 30069.0,
+      "p95": 30069.0,
+      "p99": 30069.0,
+      "max": 30069.0,
+      "mean": 6641.8
+    },
+    "n_timeouts": 0,
+    "status_codes": {
+      "n": 10,
+      "counts": {
+        "200": 3,
+        "500": 4,
+        "503": 3
+      },
+      "ratio": {
+        "200": 0.3,
+        "500": 0.4,
+        "503": 0.3
+      }
+    },
+    "latency_by_status": {
+      "200": {
+        "n": 3,
+        "min": 249.1,
+        "p50": 328.2,
+        "p90": 5353.3,
+        "p95": 5353.3,
+        "p99": 5353.3,
+        "max": 5353.3,
+        "mean": 1976.9
+      },
+      "500": {
+        "n": 4,
+        "min": 59.9,
+        "p50": 70.6,
+        "p90": 95.6,
+        "p95": 95.6,
+        "p99": 95.6,
+        "max": 95.6,
+        "mean": 77.1
+      },
+      "503": {
+        "n": 3,
+        "min": 56.7,
+        "p50": 30053.5,
+        "p90": 30069.0,
+        "p95": 30069.0,
+        "p99": 30069.0,
+        "max": 30069.0,
+        "mean": 20059.7
+      }
+    },
+    "latency_first_half": {
+      "n": 5,
+      "min": 82.4,
+      "p50": 328.2,
+      "p90": 30069.0,
+      "p95": 30069.0,
+      "p99": 30069.0,
+      "max": 30069.0,
+      "mean": 7216.4
+    },
+    "latency_second_half": {
+      "n": 5,
+      "min": 56.7,
+      "p50": 70.6,
+      "p90": 30053.5,
+      "p95": 30053.5,
+      "p99": 30053.5,
+      "max": 30053.5,
+      "mean": 6067.3
+    },
+    "non_200_bodies": {
+      "{\"error\": \"Internal Server Error\", \"message\": \"Service temporarily unavailable. Please try again later.\", \"statusCode\": 500}": 4,
+      "{\"message\": \"Service Unavailable\"}": 2,
+      "{\"error\": \"Service Unavailable\", \"message\": \"The service is currently overloaded. Please retry after the specified time.\", \"retryAfter\": 30, \"statusCode\": 503}": 1
+    },
+    "retry_after_headers": [],
+    "errors": {},
+    "latencies_ms": [
+      328.2,
+      249.1,
+      5353.3,
+      82.4,
+      30069.0,
+      95.6,
+      59.9,
+      56.7,
+      70.6,
+      30053.5
+    ]
+  },
+  "finished_at": "2026-09-03T00:58:22.595065+00:00",
+  "status_by_phase": {
+    "lifecycle": {
+      "201": 3,
+      "503": 4,
+      "500": 4,
+      "200": 3
+    },
+    "latency": {
+      "200": 3,
+      "500": 4,
+      "503": 3
+    }
+  },
+  "total_requests": 24,
+  "status_by_phase_none_total": 0
+}
