@@ -92,10 +92,27 @@ def load_records(path):
     return out
 
 
+ANSWER_RE = re.compile(r'"((?:[^"\\]|\\.)*?)"="((?:[^"\\]|\\.)*?)"(?=, "|\.\s|$)', re.S)
+FENCE = "`" * 3
+
+
+def parse_answers(text: str):
+    """AskUserQuestion 결과 문자열 → [(질문, 답변)]. 형식이 안 맞으면 빈 목록."""
+    if not text:
+        return []
+    body = re.sub(r"^(The user answered:|Your questions have been answered:)\s*", "", text.strip())
+    body = re.split(r"\. (Read the answers carefully|You can now continue)", body)[0]
+    return [(q.strip(), a.strip()) for q, a in ANSWER_RE.findall(body)]
+
+
 def parse_session(path):
     session_id = os.path.splitext(os.path.basename(path))[0]
     turns = []
     cur = None
+
+    def new_turn(ts, prompt):
+        return {"session": session_id, "start": ts, "end": ts, "prompt": prompt,
+                "events": [], "assistant_text": [], "tools": [], "duration_sec": None}
 
     def close():
         nonlocal cur
@@ -116,14 +133,12 @@ def parse_session(path):
         ts = parse_ts(rec.get("timestamp"))
 
         if rtype == "user":
-            # 문자열 content = 사용자가 직접 친 프롬프트
             if isinstance(content, str):
                 text = clean_prompt(content)
                 if not text:
                     continue
                 close()
-                cur = {"session": session_id, "start": ts, "end": ts, "prompt": text,
-                       "assistant_text": [], "tools": [], "duration_sec": None}
+                cur = new_turn(ts, text)
                 continue
             if isinstance(content, list):
                 texts = [b.get("text", "") for b in content if b.get("type") == "text"]
@@ -131,14 +146,28 @@ def parse_session(path):
                 prompt = clean_prompt("\n".join(texts))
                 if prompt and not results:
                     close()
-                    cur = {"session": session_id, "start": ts, "end": ts, "prompt": prompt,
-                           "assistant_text": [], "tools": [], "duration_sec": None}
+                    cur = new_turn(ts, prompt)
                     continue
                 if cur and results:
                     for r in results:
-                        if cur["tools"]:
-                            cur["tools"][-1]["result"] = tool_result_text(r)[:TOOL_RESULT_MAX_JSONL]
-                            cur["tools"][-1]["is_error"] = bool(r.get("is_error"))
+                        # 결과를 해당 tool_use 이벤트에 붙인다 (tool_use_id 매칭, 없으면 마지막 도구)
+                        target = None
+                        for ev in reversed(cur["events"]):
+                            if ev["kind"] == "tool" and ev.get("id") == r.get("tool_use_id"):
+                                target = ev
+                                break
+                        if target is None:
+                            tools = [ev for ev in cur["events"] if ev["kind"] == "tool"]
+                            target = tools[-1] if tools else None
+                        if target is None:
+                            continue
+                        full = tool_result_text(r)
+                        target["is_error"] = bool(r.get("is_error"))
+                        if target["name"] == "AskUserQuestion":
+                            target["result"] = full            # 사용자 답변은 자르지 않는다
+                            target["answers"] = parse_answers(full)
+                        else:
+                            target["result"] = full[:TOOL_RESULT_MAX_JSONL]
                     cur["end"] = ts or cur["end"]
             continue
 
@@ -150,12 +179,58 @@ def parse_session(path):
             for b in content:
                 bt = b.get("type")
                 if bt == "text" and b.get("text"):
-                    cur["assistant_text"].append(b["text"])
+                    cur["events"].append({"kind": "text", "text": b["text"]})
                 elif bt == "tool_use":
-                    cur["tools"].append({"name": b.get("name"), "summary": summarize_tool_use(b),
-                                         "ts": rec.get("timestamp"), "result": "", "is_error": False})
+                    ev = {"kind": "tool", "id": b.get("id"), "name": b.get("name"), "summary": summarize_tool_use(b),
+                          "ts": rec.get("timestamp"), "result": "", "is_error": False}
+                    if b.get("name") == "AskUserQuestion":
+                        ev["questions"] = (b.get("input") or {}).get("questions") or []
+                        ev["summary"] = "AskUserQuestion: 선택지 제시 %d개" % len(ev["questions"])
+                    cur["events"].append(ev)
     close()
+    for t in turns:  # jsonl 호환 필드
+        t["assistant_text"] = [e["text"] for e in t["events"] if e["kind"] == "text"]
+        t["tools"] = [{k: v for k, v in e.items() if k != "kind"} for e in t["events"] if e["kind"] == "tool"]
     return turns
+
+
+def render_ask(ev, lines):
+    """AskUserQuestion 을 본문에 펼친다: 질문·선택지(추천 표시) → 사용자 답변(잘림 없음)."""
+    lines.append("> **🤖 결정 요청** — Claude 가 선택지를 제시하고 사용자가 답함")
+    lines.append(">")
+    for n, q in enumerate(ev.get("questions") or [], 1):
+        hdr = f" _({q.get('header')})_" if q.get("header") else ""
+        lines.append(f"> **Q{n}. {q.get('question', '')}**{hdr}")
+        for o in q.get("options") or []:
+            label = o.get("label", "")
+            desc = o.get("description") or ""
+            lines.append(f"> - {label}" + (f" — {desc}" if desc else ""))
+        lines.append(">")
+    answers = ev.get("answers") or []
+    lines.append("> **👤 사용자 답변**")
+    if answers:
+        for q, a in answers:
+            lines.append(f"> - {q} → **{a}**")
+    else:
+        raw = (ev.get("result") or "").strip().replace("\n", " ")
+        lines.append(f"> {raw or '_(답변 없음)_'}")
+    lines.append("")
+
+
+def render_tools(tools, lines):
+    if not tools:
+        return
+    lines.append("<details><summary>도구 호출 {}건</summary>\n".format(len(tools)))
+    for tool in tools:
+        flag = " ❌" if tool.get("is_error") else ""
+        lines.append(f"- `{tool['summary']}`{flag}")
+        res = (tool.get("result") or "").strip()
+        if res:
+            snippet = res[:TOOL_RESULT_MAX_MD].replace(FENCE, "'''")
+            more = " …" if len(res) > TOOL_RESULT_MAX_MD else ""
+            body = "\n".join("  " + ln for ln in (snippet + more).splitlines())
+            lines.append(f"  {FENCE}\n{body}\n  {FENCE}")
+    lines.append("\n</details>\n")
 
 
 def write_outputs(turns, out_dir, cwd):
@@ -172,20 +247,23 @@ def write_outputs(turns, out_dir, cwd):
                 "duration_sec": t["duration_sec"],
                 "prompt": t["prompt"],
                 "assistant": "\n\n".join(t["assistant_text"]),
-                "tools": t["tools"],
+                "events": t["events"],
             }, ensure_ascii=False) + "\n")
 
     total = sum(t["duration_sec"] or 0 for t in turns)
     sessions = sorted({t["session"] for t in turns})
+    n_ask = sum(1 for t in turns for e in t["events"] if e["kind"] == "tool" and e["name"] == "AskUserQuestion")
     lines = ["# AI 협업 대화 로그", "",
              f"- 프로젝트: `{cwd}`",
              f"- 생성 시각: {fmt_ts(datetime.now(timezone.utc))} (KST)",
-             f"- 세션 수: {len(sessions)} / 턴 수: {len(turns)} / 응답 소요 합계: {fmt_dur(total)}",
+             f"- 세션 수: {len(sessions)} / 턴 수: {len(turns)} / 응답 소요 합계: {fmt_dur(total)} / 선택지 결정 요청: {n_ask}회",
+             "- 표기: **👤 사용자** = 직접 입력한 프롬프트, **🤖 결정 요청** 블록 = Claude 가 선택지를 제시하고 사용자가 고른 지점(질문·선택지·답변 전문), 접힌 `도구 호출` = 파일 읽기·명령 실행 등",
              "", "## 턴 요약", "",
-             "| # | 시작(KST) | 소요 | 도구 | 질문 |", "|---|---|---|---|---|"]
+             "| # | 시작(KST) | 소요 | 도구 | 결정 요청 | 질문 |", "|---|---|---|---|---|---|"]
     for i, t in enumerate(turns, 1):
         q = t["prompt"].replace("\n", " ").replace("|", "\\|")[:60]
-        lines.append(f"| {i} | {fmt_ts(t['start'])} | {fmt_dur(t['duration_sec'])} | {len(t['tools'])} | {q} |")
+        asks = sum(1 for e in t["events"] if e["kind"] == "tool" and e["name"] == "AskUserQuestion")
+        lines.append(f"| {i} | {fmt_ts(t['start'])} | {fmt_dur(t['duration_sec'])} | {len(t['tools'])} | {asks or ''} | {q} |")
     lines += ["", "---", ""]
 
     for i, t in enumerate(turns, 1):
@@ -193,19 +271,20 @@ def write_outputs(turns, out_dir, cwd):
                   f"- 시작: {fmt_ts(t['start'])} / 종료: {fmt_ts(t['end'])} / 소요: {fmt_dur(t['duration_sec'])}",
                   f"- 세션: `{t['session'][:8]}`", "",
                   "### 👤 사용자", "", t["prompt"], "", "### 🤖 Claude", ""]
-        if t["tools"]:
-            lines.append("<details><summary>도구 호출 {}건</summary>\n".format(len(t["tools"])))
-            for tool in t["tools"]:
-                flag = " ❌" if tool.get("is_error") else ""
-                lines.append(f"- `{tool['summary']}`{flag}")
-                res = (tool.get("result") or "").strip()
-                if res:
-                    snippet = res[:TOOL_RESULT_MAX_MD].replace("```", "'''")
-                    more = " …" if len(res) > TOOL_RESULT_MAX_MD else ""
-                    body = "\n".join("  " + ln for ln in (snippet + more).splitlines())
-                    lines.append(f"  ```\n{body}\n  ```")
-            lines.append("\n</details>\n")
-        lines.append("\n\n".join(t["assistant_text"]) or "_(텍스트 응답 없음)_")
+        pending_tools = []
+        for ev in t["events"]:
+            if ev["kind"] == "tool" and ev["name"] != "AskUserQuestion":
+                pending_tools.append(ev)
+                continue
+            render_tools(pending_tools, lines)
+            pending_tools = []
+            if ev["kind"] == "text":
+                lines += [ev["text"], ""]
+            else:
+                render_ask(ev, lines)
+        render_tools(pending_tools, lines)
+        if not any(e["kind"] == "text" for e in t["events"]):
+            lines.append("_(텍스트 응답 없음)_")
         lines += ["", "---", ""]
 
     with open(md_path, "w", encoding="utf-8") as f:
