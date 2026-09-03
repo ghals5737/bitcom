@@ -14,6 +14,16 @@ import { api, ApiError, fmtDate } from "@/lib/client";
 import { useMe } from "@/hooks/use-me";
 import type { MeProfile } from "@/lib/types";
 
+/** Base UI Input 이 Enter 의 암묵적 제출을 막는 경우가 있어 폼 레벨에서 보장한다. */
+function submitOnEnter(e: React.KeyboardEvent<HTMLFormElement>) {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  const t = e.target as HTMLElement;
+  if (t.tagName === "INPUT" && (t as HTMLInputElement).type !== "textarea") {
+    e.preventDefault();
+    e.currentTarget.requestSubmit();
+  }
+}
+
 export default function MePage() {
   const { me, loading } = useMe();
   const [profile, setProfile] = useState<MeProfile | null>(null);
@@ -92,7 +102,7 @@ export default function MePage() {
           </CardHeader>
           <CardContent>
             {!profile ? <Skeleton className="h-40" /> : (
-              <form onSubmit={save} className="space-y-4">
+              <form onKeyDown={submitOnEnter} onSubmit={save} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">연락처</Label>
                   <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" />

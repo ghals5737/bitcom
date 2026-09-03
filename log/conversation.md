@@ -1,8 +1,8 @@
 # AI 협업 대화 로그
 
 - 프로젝트: `/Users/hbrc/workspace/bitcom`
-- 생성 시각: 2026-09-03 16:15:04 (KST)
-- 세션 수: 1 / 턴 수: 25 / 응답 소요 합계: 133m 12s
+- 생성 시각: 2026-09-03 16:25:42 (KST)
+- 세션 수: 1 / 턴 수: 27 / 응답 소요 합계: 136m 33s
 
 ## 턴 요약
 
@@ -33,6 +33,8 @@
 | 23 | 2026-09-03 16:02:35 | 30s | 1 | 재기동했어 다시 확인해줘 |
 | 24 | 2026-09-03 16:12:57 | 1m 48s | 5 | include 추가하고 reload했어 다시 확인해줘 |
 | 25 | 2026-09-03 16:14:47 | 15s | 1 | <task-notification> <task-id>bovf0l1ft</task-id> <tool-use-i |
+| 26 | 2026-09-03 16:18:20 | 1m 13s | 3 | 배포 끝났어 |
+| 27 | 2026-09-03 16:23:31 | 2m 08s | 7 | 재배포 끝났어 다시 확인해줘 |
 
 ---
 
@@ -3220,5 +3222,204 @@ EC2 백엔드가 nginx 경유로 전부 정상입니다. 마지막으로 컨테�
 - 배포 후 pages.dev 주소로 로그인이 되면, EC2 보안그룹 80을 Cloudflare 대역으로 좁히면 됩니다.
 
 Pages 배포가 끝나면 주소를 알려주세요. 브라우저에서 로그인부터 Background Check까지 한 번 더 돌려보겠습니다.
+
+---
+
+## 턴 26
+
+- 시작: 2026-09-03 16:18:20 / 종료: 2026-09-03 16:19:33 / 소요: 1m 13s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+배포 끝났어
+
+### 🤖 Claude
+
+<details><summary>도구 호출 3건</summary>
+
+- `Bash: Probe likely Cloudflare Pages hostnames`
+  ```
+  bitcom.pages.dev             200 비트컴퓨터 직원 포털
+  
+  bitcom-portal.pages.dev      000 비트컴퓨터 직원 포털
+  
+  --- api via pages:
+  HTTP/2 403
+  ```
+- `Bash: Inspect the 403 from the Pages Function path`
+  ```
+  == GET headers/body
+  HTTP/2 403 
+  date: Thu, 03 Sep 2026 07:18:44 GMT
+  content-type: text/plain; charset=UTF-8
+  content-length: 17
+  cf-ray: a352fb6f6bb7ea0b-ICN
+  cache-control: private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+  expires: Thu, 01 Jan 1970 00:00:01 GMT
+   …
+  ```
+- `Bash: Verify EC2 accepts sslip.io hostname, document the 1003 fix, commit and push`
+  ```
+  == DNS
+  15.165.171.81
+  == via hostname
+  HTTP/1.1 401 
+  Server: nginx/1.26.3
+  {"error":"UNAUTHENTICATED","message":"로그인이 필요합니다."}== login via hostname
+  200
+  docs updated
+  da9aca1 docs: Pages Function 은 IP 직접 fetch 불가(1003) → BACKEND_ORIGIN 에 sslip.io 호스트명 사용
+  ```
+
+</details>
+
+주소를 못 받았는데, 프로젝트명이 저장소명과 같다면 `bitcom.pages.dev`일 가능성이 높아 먼저 확인해 보겠습니다.
+
+Pages 배포 자체는 됐고(https://bitcom.pages.dev 에서 로그인 화면이 뜹니다), API 프록시만 Cloudflare 제약에 걸렸습니다.
+
+**원인**: Pages Functions의 `fetch`는 호스트명 없이 IP 주소로 요청하는 것을 차단합니다. `/bitcom/api/*` 호출이 모두 403에 `error code: 1003`(Direct IP access not allowed)으로 돌아왔습니다. EC2 자체는 정상이었으므로 프록시 구간 문제였습니다.
+
+**해결**: sslip.io로 IP를 호스트명으로 감싸면 됩니다. `15.165.171.81.sslip.io`가 그 IP로 풀리고, EC2 nginx가 이 호스트명을 그대로 받아 401 JSON과 로그인 200을 돌려주는 것을 확인했습니다.
+
+Cloudflare Pages 설정에서 환경변수를 바꾸고 재배포해 주세요.
+
+```
+BACKEND_ORIGIN=http://15.165.171.81.sslip.io
+```
+
+환경변수 변경은 자동 반영되지 않으므로 Deployments에서 Retry deployment를 눌러야 합니다.
+
+문서(deploy/ec2/README.md, implementation-plan.md)에 이 함정을 적었고, AI_LOG B항목 메모에도 "도메인 없이 IP로 붙이면 된다"고 본 계획 단계의 판단이 틀렸던 지점으로 기록했습니다(`da9aca1`, 푸시 완료).
+
+재배포가 끝나면 알려주세요. 브라우저에서 pages.dev로 로그인부터 Background Check까지 확인하겠습니다.
+
+---
+
+## 턴 27
+
+- 시작: 2026-09-03 16:23:31 / 종료: 2026-09-03 16:25:39 / 소요: 2m 08s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+재배포 끝났어 다시 확인해줘
+
+### 🤖 Claude
+
+<details><summary>도구 호출 7건</summary>
+
+- `Bash: Verify Pages Function proxy end to end`
+  ```
+  == me (401 expected)
+  HTTP/2 401 
+  {"error":"UNAUTHENTICATED","message":"로그인이 필요합니다."}
+  == login
+  HTTP/2 200 
+  set-cookie: SESSION=b99cf961b41cfa744fab6bea408c924d86b2bf4d93187e2085e360876b3ab112; Path=/; Max-Age=1800; Expires=Thu, 03 Sep 2026 07:53:44 GMT; Secure; HttpOnly; SameSite=Lax
+  {"employeeId" …
+  ```
+- `Bash: Verify authenticated admin endpoints through Pages proxy`
+  ```
+  12 rows ['ADMIN-001', 'EMP-001', 'EMP-002', 'EMP-003'] ...
+  [{"id":3,"checkId":"CHK-65bd6dce-9a14-46c8-aee7-039b7c61d7fa","status":"CLEAR","requestedBy":"ADMIN-001","requestedAt":"
+  
+  latency via pages: 0.224198s
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [navigate] navigated to https://bitcom.pages.dev
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.pages.dev)
+  [computer:wait] waited 4s
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.page …
+  ```
+- `mcp__Claude_Browser__browser_batch` ❌
+  ```
+  [form_input] filled ref_5 with value
+  
+  (captured at origin https://bitcom.pages.dev)
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.pages.dev)
+  [form_input] filled ref_7 with value
+  
+  (captured at origin https://bitcom.pages.dev)
+  
+  
+  Tab Context:
+  - …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [get_page_text] Title: 비트컴퓨터 직원 포털
+  URL: https://bitcom.pages.dev
+  Source element: <main>
+  ---
+  직원 목록
+  
+  전체 직원을 표시합니다. 재직 상태로 걸러볼 수 있습니다.
+  
+  계정 생성
+  전체
+  재직
+  퇴사
+  사번	성명	부서	직급	입사일	역할	상태	Background Check	
+  ADMIN-001	관리자	인사팀	팀장	2015-03-02	관리자	재직	없음	상세
+  EMP-001	김민준	개발1팀	선임	2018-04-02	직원	재직	없음	상세
+  EMP-002	김민준	개발2팀	주임	2021 …
+  ```
+- `Bash: Check employee path and static routes on the live site`
+  ```
+  me: {"employeeId":"EMP-001","name":"김민준","birthDate":"1990-03-15","phone":"010-2000-9999
+  admin as employee: {"error":"FORBIDDEN","message":"관리자만 사용할 수 있는 기능입니다."}
+  resigned login: {"error":"RESIGNED","message":"퇴사 처리된 계정입니다. 시스템에 접근할 수 없습니다."}
+  static pages:
+    /                      200
+    /login       …
+  ```
+- `Bash: Append deployment section to today's work log`
+  ```
+  worklog updated
+  ```
+
+</details>
+
+Browser flow on the live site works (login → list → detail with no console errors). One last check of the employee-side path through Pages, then I'll report.
+
+배포가 완전히 동작합니다. https://bitcom.pages.dev 에서 실제 브라우저와 curl 양쪽으로 확인했습니다.
+
+**확인 결과** (Cloudflare Pages → Function 프록시 → EC2 nginx → 컨테이너 → RDS)
+
+| 항목 | 결과 |
+|---|---|
+| 정적 페이지 6개 (`/`, `/login`, `/me`, `/admin`, `/admin/employees/new`, `/admin/employee`) | 모두 200 |
+| 브라우저 로그인 → 직원 목록 → 상세(`?id=EMP-006`) | 정상, 콘솔 오류 없음 |
+| 로그인 응답 쿠키 | `Secure; HttpOnly; SameSite=Lax`, HTTPS라 브라우저가 정상 전송 |
+| 직원 계정으로 `/me` | 200, 관리자 API는 403 |
+| 퇴사자(EMP-010) 로그인 | 403 RESIGNED |
+| 사번 형식 오류 | 400 VALIDATION |
+| Background Check 이력 (EMP-006) | 어제 요청 건이 컨테이너 폴러에 의해 CLEAR로 완료돼 있음 |
+| Pages 경유 API 지연 | 약 220ms (EC2 직접은 약 20ms) |
+
+**정리해 둘 것**
+
+- 제출용 계정은 `ADMIN-001 / admin1234!`, `EMP-001 / emp1234!`이고, 로그인 화면에도 안내돼 있습니다.
+- RDS에는 로컬 스모크 테스트 흔적(EMP-011, EMP-010 퇴사, Background Check 3건)이 남아 있습니다. 제출 전에 초기화하려면 테이블을 비우고 컨테이너를 재기동하면 시드가 다시 들어갑니다. 원하시면 SQL을 드리겠습니다.
+- EC2 보안그룹 80은 지금 열려 있는 범위 그대로일 텐데, Cloudflare IP 대역으로 좁히면 프록시 우회 접근을 막을 수 있습니다.
+
+오늘 작업 일지에도 배포 섹션을 추가했습니다. 다음 남은 일은 제출 문서 3종(MEASUREMENTS.md, DECISIONS.md, AI_LOG.md) 작성입니다.
 
 ---

@@ -11,6 +11,16 @@ import { api, ApiError } from "@/lib/client";
 import { homeFor } from "@/hooks/use-me";
 import type { MeSummary } from "@/lib/types";
 
+/** Base UI Input 이 Enter 의 암묵적 제출을 막는 경우가 있어 폼 레벨에서 보장한다. */
+function submitOnEnter(e: React.KeyboardEvent<HTMLFormElement>) {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  const t = e.target as HTMLElement;
+  if (t.tagName === "INPUT" && (t as HTMLInputElement).type !== "textarea") {
+    e.preventDefault();
+    e.currentTarget.requestSubmit();
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [employeeId, setEmployeeId] = useState("");
@@ -41,7 +51,7 @@ export default function LoginPage() {
           <CardDescription>사번과 비밀번호로 로그인하세요.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={submit} className="space-y-4">
+          <form onKeyDown={submitOnEnter} onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="employeeId">사번</Label>
               <Input id="employeeId" placeholder="EMP-001" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} autoComplete="username" autoFocus required />

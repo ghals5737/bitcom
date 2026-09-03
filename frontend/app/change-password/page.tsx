@@ -11,6 +11,16 @@ import { api, ApiError } from "@/lib/client";
 import { homeFor, useMe } from "@/hooks/use-me";
 import type { MeSummary } from "@/lib/types";
 
+/** Base UI Input 이 Enter 의 암묵적 제출을 막는 경우가 있어 폼 레벨에서 보장한다. */
+function submitOnEnter(e: React.KeyboardEvent<HTMLFormElement>) {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  const t = e.target as HTMLElement;
+  if (t.tagName === "INPUT" && (t as HTMLInputElement).type !== "textarea") {
+    e.preventDefault();
+    e.currentTarget.requestSubmit();
+  }
+}
+
 export default function ChangePasswordPage() {
   const router = useRouter();
   const { me, loading } = useMe({ allowMustChange: true });
@@ -49,7 +59,7 @@ export default function ChangePasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={submit} className="space-y-4">
+          <form onKeyDown={submitOnEnter} onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="cur">{me.mustChangePassword ? "임시 비밀번호" : "현재 비밀번호"}</Label>
               <Input id="cur" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoFocus />
