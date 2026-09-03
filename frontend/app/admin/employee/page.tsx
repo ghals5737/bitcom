@@ -1,6 +1,7 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,17 @@ const ACTION_LABEL: Record<AuditAction, string> = {
   BGCHECK_DELETED: "Background Check 결과 삭제", EMPLOYEE_RESIGNED: "퇴사 처리", PASSWORD_RESET: "임시 비밀번호 재발급", ACCOUNT_LOCKED: "계정 잠금",
 };
 
-export default function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+/** 정적 export 를 위해 /admin/employee?id=EMP-001 형태. useSearchParams 는 Suspense 경계가 필요하다. */
+export default function EmployeeDetailPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-96" />}>
+      <EmployeeDetail />
+    </Suspense>
+  );
+}
+
+function EmployeeDetail() {
+  const id = useSearchParams().get("id") ?? "";
   const [emp, setEmp] = useState<EmployeeDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 

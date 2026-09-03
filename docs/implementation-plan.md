@@ -21,7 +21,7 @@ Spring Boot (EC2, 8080)
 ```
 
 ### 도메인 없음 → 오리진 문제 해결 (결정)
-- Cloudflare Pages Functions(`functions/bitcom/api/[[path]].ts`)가 `/bitcom/api/*`를 EC2로 프록시.
+- Cloudflare Pages Functions(저장소 루트 `functions/bitcom/api/[[path]].ts`)가 `/bitcom/api/*`를 EC2로 프록시.
 - 브라우저는 pages.dev 단일 오리진만 봄 → 세션 쿠키 `SameSite=Lax; Secure; HttpOnly` 그대로 사용. Safari 서드파티 쿠키 차단 영향 없음.
 - Cloudflare → EC2 구간은 HTTP. EC2 보안그룹 인바운드 8080을 Cloudflare IP 대역으로만 허용. SSH는 내 IP만.
 - 반대 선택(sslip.io + Let's Encrypt로 EC2 HTTPS + SameSite=None): 구간 암호화는 되지만 Safari/ITP에서 로그인 실패 위험. DECISIONS 재료.
@@ -40,7 +40,7 @@ bitcom/
 │       └── common/     예외, 응답 포맷, 시드 로더
 ├── frontend/           Next.js (App Router, output: 'export')
 │   ├── app/            login, me, change-password, admin/*
-│   └── functions/bitcom/api/[[path]].ts   Cloudflare Pages 프록시
+├── functions/bitcom/api/[[path]].ts   Cloudflare Pages 프록시 (저장소 루트 = Pages 프로젝트 루트)
 ├── measure/            API 실측 스크립트 + 결과
 ├── docs/               planning.md, implementation-plan.md
 ├── log/                AI 대화 로그
@@ -130,7 +130,7 @@ action: `EMPLOYEE_UPDATED`, `BGCHECK_REQUESTED`, `BGCHECK_VIEWED`, `BGCHECK_DELE
 | /me | EMPLOYEE | 내 정보 조회 + 연락처·주소 수정 폼 |
 | /admin | ADMIN | 직원 목록 (상태 필터, 최근 BGC 배지) + 계정 생성 버튼 |
 | /admin/employees/new | ADMIN | 생성 폼. 성공 시 사번·임시 비밀번호 모달(1회) |
-| /admin/employees/[id] | ADMIN | 탭: 기본정보(수정) / Background Check(요청·이력·상세 펼침·재확인) / 이력 |
+| /admin/employee?id= | ADMIN | (정적 export 를 위해 쿼리스트링) 탭: 기본정보(수정) / Background Check(요청·이력·상세 펼침·재확인) / 이력 |
 
 - 로그인 후 role로 분기: ADMIN → /admin, EMPLOYEE → /me. must_change_password면 /change-password.
 - BGC 탭은 PENDING 건이 있으면 5초마다 목록 재조회(화면은 DB만 봄).
@@ -174,6 +174,6 @@ action: `EMPLOYEE_UPDATED`, `BGCHECK_REQUESTED`, `BGCHECK_VIEWED`, `BGCHECK_DELE
 
 1. RDS PostgreSQL (ap-northeast-2, db.t4g.micro, 퍼블릭 접근 불가, EC2 SG만 허용)
 2. EC2 (ap-northeast-2, t3.small, Amazon Linux 2023, docker) — Spring Boot 이미지 실행, 환경변수로 DB·외부 API URL
-3. Cloudflare Pages — `frontend/` 빌드(`next build`, output export), `functions/bitcom/api/[[path]].ts`에 EC2 주소를 환경변수로
+3. Cloudflare Pages — 루트 디렉터리 = 저장소 루트, 빌드 명령 `cd frontend && npm ci && npm run build:pages`, 출력 `frontend/out`, 환경변수 `BACKEND_ORIGIN=http://<EC2>:8080`, `NODE_VERSION=22`
 4. EC2 SG: 8080 인바운드 = Cloudflare IP 대역, 22 = 내 IP
 5. 제출용 계정 확인, 스모크 테스트(로그인 → 생성 → BGC → 퇴사 → 재로그인 거부)

@@ -90,8 +90,8 @@ export default function AdminEmployeesPage() {
                     key={r.employeeId}
                     role="link"
                     tabIndex={0}
-                    onClick={() => router.push(`/admin/employees/${r.employeeId}`)}
-                    onKeyDown={(e) => { if (e.key === "Enter") router.push(`/admin/employees/${r.employeeId}`); }}
+                    onClick={() => router.push(`/admin/employee?id=${r.employeeId}`)}
+                    onKeyDown={(e) => { if (e.key === "Enter") router.push(`/admin/employee?id=${r.employeeId}`); }}
                     className={cn("cursor-pointer", r.status === "RESIGNED" && "text-muted-foreground")}
                   >
                     <TableCell className="font-mono text-xs">{r.employeeId}</TableCell>
@@ -103,7 +103,7 @@ export default function AdminEmployeesPage() {
                     <TableCell><EmployeeStatusBadge status={r.status} /></TableCell>
                     <TableCell><BgcStatusBadge status={r.latestBgcStatus} /></TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/admin/employees/${r.employeeId}`} onClick={(e) => e.stopPropagation()} />}>상세</Button>
+                      <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/admin/employee?id=${r.employeeId}`} onClick={(e) => e.stopPropagation()} />}>상세</Button>
                     </TableCell>
                   </TableRow>
                 ))}

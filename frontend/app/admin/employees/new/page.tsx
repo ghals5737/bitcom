@@ -124,7 +124,7 @@ export default function NewEmployeePage() {
         </div>
       </form>
 
-      <Dialog open={!!result} onOpenChange={(o) => { if (!o && result) router.push(`/admin/employees/${result.employee.employeeId}`); }}>
+      <Dialog open={!!result} onOpenChange={(o) => { if (!o && result) router.push(`/admin/employee?id=${result.employee.employeeId}`); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>계정이 생성되었습니다</DialogTitle>
@@ -139,7 +139,7 @@ export default function NewEmployeePage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => { if (result) { navigator.clipboard?.writeText(result.temporaryPassword); toast.success("임시 비밀번호를 복사했습니다."); } }}>복사</Button>
-            <Button onClick={() => result && router.push(`/admin/employees/${result.employee.employeeId}`)}>상세로 이동</Button>
+            <Button onClick={() => result && router.push(`/admin/employee?id=${result.employee.employeeId}`)}>상세로 이동</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

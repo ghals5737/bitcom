@@ -59,7 +59,7 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={busy}>{busy ? "확인 중..." : "로그인"}</Button>
           </form>
           <div className="mt-6 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-            <p className="mb-1 font-medium text-foreground">평가용 계정 (목업)</p>
+            <p className="mb-1 font-medium text-foreground">평가용 계정</p>
             <p>관리자: ADMIN-001 / admin1234!</p>
             <p>직원: EMP-001 / emp1234!</p>
             <p className="mt-1">그 외 시드 직원은 임시 비밀번호 <code>Temp-EMP-00N!1</code> (첫 로그인 시 변경 강제)</p>
