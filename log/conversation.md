@@ -1,8 +1,8 @@
 # AI 협업 대화 로그
 
 - 프로젝트: `/Users/hbrc/workspace/bitcom`
-- 생성 시각: 2026-09-03 16:25:42 (KST)
-- 세션 수: 1 / 턴 수: 27 / 응답 소요 합계: 136m 33s
+- 생성 시각: 2026-09-03 16:36:20 (KST)
+- 세션 수: 1 / 턴 수: 28 / 응답 소요 합계: 146m 43s
 
 ## 턴 요약
 
@@ -35,6 +35,7 @@
 | 25 | 2026-09-03 16:14:47 | 15s | 1 | <task-notification> <task-id>bovf0l1ft</task-id> <tool-use-i |
 | 26 | 2026-09-03 16:18:20 | 1m 13s | 3 | 배포 끝났어 |
 | 27 | 2026-09-03 16:23:31 | 2m 08s | 7 | 재배포 끝났어 다시 확인해줘 |
+| 28 | 2026-09-03 16:26:08 | 10m 10s | 18 | ADMIN로그인이 안되던데 |
 
 ---
 
@@ -3421,5 +3422,230 @@ Browser flow on the live site works (login → list → detail with no console e
 - EC2 보안그룹 80은 지금 열려 있는 범위 그대로일 텐데, Cloudflare IP 대역으로 좁히면 프록시 우회 접근을 막을 수 있습니다.
 
 오늘 작업 일지에도 배포 섹션을 추가했습니다. 다음 남은 일은 제출 문서 3종(MEASUREMENTS.md, DECISIONS.md, AI_LOG.md) 작성입니다.
+
+---
+
+## 턴 28
+
+- 시작: 2026-09-03 16:26:08 / 종료: 2026-09-03 16:36:18 / 소요: 10m 10s
+- 세션: `821d4984`
+
+### 👤 사용자
+
+ADMIN로그인이 안되던데
+
+### 🤖 Claude
+
+<details><summary>도구 호출 18건</summary>
+
+- `Bash: Check admin login state via live site and DB`
+  ```
+  == login via pages
+  HTTP/2 200 
+  {"employeeId":"ADMIN-001","name":"관리자","role":"ADMIN","mustChangePassword":false}
+  == DB state
+  ADMIN-001|f|0|f|ACTIVE
+  EMP-001|f|0|f|ACTIVE
+  BGCHECK_REQUESTED|ADMIN-001|2026-09-03 07:14:15.903552+00
+  BGCHECK_VIEWED|ADMIN-001|2026-09-03 03:00:01.630879+00
+  PASSWORD_RESET|AD …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [navigate] navigated to https://bitcom.pages.dev
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.pages.dev)
+  [computer:wait] waited 3s
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.page …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [computer:left_click] left_click at (581, 120) [ref_5]
+  
+  (captured at origin https://bitcom.pages.dev)
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (https://bitcom.pages.dev)
+  [computer:type] typed 9 chars
+  
+  (captured at origin https://bitcom.pages.dev)
+  
+  
+  Tab …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [javascript_tool:javascript_exec] {
+    "btn": "<button type=\"submit\" tabindex=\"0\" data-slot=\"button\" class=\"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whit",
+    "formValid": true,
+    "id": "ADMIN-001",
+     …
+  ```
+- `Bash: Inspect shadcn/Base UI Input for Enter key handling`
+  ```
+  import * as React from "react"
+  import { Input as InputPrimitive } from "@base-ui/react/input"
+  
+  import { cn } from "@/lib/utils"
+  
+  function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+    return (
+      <InputPrimitive
+        type={type}
+        data-slot="input"
+        className={cn …
+  ```
+- `Bash: Locate Base UI Enter handling and add form-level Enter submit to the three forms`
+  ```
+  (eval):1: no matches found: --include=*.js
+  (eval):1: no matches found: --include=*.js
+  patched 3 forms
+  checks ok
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [navigate] navigated to http://localhost:49300
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://localhost:49300)
+  [computer:wait] waited 5s
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://localhost:49300) …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [computer:left_click] left_click at (581, 120) [ref_5]
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://localhost:49300)
+  [computer:type] typed 9 chars
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://loca …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [javascript_tool:javascript_exec] {
+    "active": "",
+    "formHasOnKeyDown": true
+  }
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://localhost:49300)
+  [computer:key] pressed Return x1
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId see …
+  ```
+- `mcp__Claude_Browser__browser_batch`
+  ```
+  [computer:left_click] left_click at (581, 188) [ref_7]
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://localhost:49300)
+  [computer:key] pressed Return x1
+  
+  
+  Tab Context:
+  - Executed on tabId: seed
+  - Available tabs:
+    • tabId seed: "비트컴퓨터 직원 포털" (http://l …
+  ```
+- `Bash: Commit and push the Enter-submit safeguard`
+  ```
+  a8cc2c4 frontend: 로그인/비밀번호변경/내정보 폼에서 Enter 제출을 폼 레벨(requestSubmit)로 보장
+  ```
+- `AskUserQuestion`
+  ```
+  The user answered: "ADMIN-001 로그인이 안 될 때 화면에서 정확히 어떤 일이 있었나요?"="로그인 잘되네 잘못봤나봐 이제 문서작성 도와줘 근데 수정은하지말고 조언도하지마 그냥 md파일만 써줘", "어떤 브라우저로 시도하셨나요?"="[No preference]". Read the answers carefully — they may request clarification, changes, or that you not proceed — and follow what they actually say.
+  ```
+- `Bash: Read measurement contract/total sections, config values, refresh conversation log`
+  ```
+  ## 5. 명세(swagger.yaml) 대조 프로브
+  
+  프로브 수 n = 38
+  
+  | 프로브 | 요청 | HTTP | 명세에 있는 코드? | 지연(ms) | 응답 필드 차이 (누락 / 명세 외) | 본문(앞 160자) |
+  |---|---|---|---|---|---|---|
+  | POST valid | `POST /background-checks` | 201 | Y | 1438.1 | 누락=['estimatedCompletionSeconds'] / 명세외=[] | `{"checkId": "CHK-e52ae328-b466-4454-b04 …
+  ```
+- `Write: /Users/hbrc/workspace/bitcom/MEASUREMENTS.md`
+  ```
+  File created successfully at: /Users/hbrc/workspace/bitcom/MEASUREMENTS.md (file state is current in your context — no need to Read it back)
+  ```
+- `Write: /Users/hbrc/workspace/bitcom/DECISIONS.md`
+  ```
+  File created successfully at: /Users/hbrc/workspace/bitcom/DECISIONS.md (file state is current in your context — no need to Read it back)
+  ```
+- `Write: /Users/hbrc/workspace/bitcom/AI_LOG.md`
+  ```
+  File created successfully at: /Users/hbrc/workspace/bitcom/AI_LOG.md (file state is current in your context — no need to Read it back)
+  ```
+- `Write: /Users/hbrc/workspace/bitcom/README.md`
+  ```
+  File created successfully at: /Users/hbrc/workspace/bitcom/README.md (file state is current in your context — no need to Read it back)
+  ```
+- `Bash: Commit and push submission documents`
+  ```
+  2abb696 docs: 제출 문서 초안 (README, MEASUREMENTS, DECISIONS, AI_LOG)
+        70 README.md
+       163 MEASUREMENTS.md
+        85 DECISIONS.md
+        96 AI_LOG.md
+       414 total
+  ```
+
+</details>
+
+지금 상태를 바로 확인해 보겠습니다. 잠금이 걸렸을 가능성이 있습니다.
+
+API 로그인은 200이고 계정도 잠기지 않았습니다(실패 카운트 0). 브라우저 쪽 문제로 보여 쿠키를 지운 새 상태로 한 번 더 재현해 보겠습니다.
+
+Testing the fix on the local dev server now: type credentials and press Enter only, then check whether the login POST fires.
+
+필요한 자료는 모두 확보했습니다. 제출 문서 4개(MEASUREMENTS.md, DECISIONS.md, AI_LOG.md, README.md)를 저장소 루트에 씁니다.
+
+제출 문서 4개를 저장소 루트에 작성하고 푸시했습니다(`2abb696`).
+
+- [README.md](README.md): 배포 URL, 제출 계정, 구성도, 넣은 것과 뺀 것과 이유, 알려진 제약
+- [MEASUREMENTS.md](MEASUREMENTS.md): 실측 결과 6개 항목을 표본 수와 함께 정리하고, 7절에 타임아웃·재시도·폴링·중단 조건 값을 실측 근거로 적었습니다. 수치는 `measure/results/HBRC-FULL-0903/summary.md`에서 그대로 가져왔습니다.
+- [DECISIONS.md](DECISIONS.md): 미정 항목 4개 모두를 "정한 것 / 왜 / 반대로 했다면 / 틀리는 상황" 형식으로 썼고, 각 항목 끝에 구현 위치를 적었습니다.
+- [AI_LOG.md](AI_LOG.md): 대화 전문은 `log/conversation.md`를 가리키고, A 4건, B 7건, C 1건을 정리했습니다. C는 Next.js rewrites와 Pages Function의 관계, 정적 export의 동적 라우트 제약, Hibernate jsonb 매핑을 골랐습니다.
+
+모두 1인칭 작성자 시점입니다. 내용은 대화와 기록에 있던 사실만 썼고, 코드는 건드리지 않았습니다.
 
 ---

@@ -91,6 +91,7 @@
 1. 정적 export(`output: "export"`)에서는 `rewrites` 가 무시된다는 경고가 나오는데, 왜 Pages Function 은 정적 파일보다 먼저 요청을 받는지(Cloudflare Pages 의 라우팅 순서).
 2. 상세 페이지를 `/admin/employees/[id]` 에서 `/admin/employee?id=` 로 바꿔야 했던 이유. "동적 세그먼트는 빌드 시점에 경로를 다 알아야 정적 HTML 로 만들 수 있다" 는 설명은 이해했지만, `generateStaticParams` 로 시드 10명만 미리 만들고 나머지를 fallback 하는 방법이 왜 export 에서는 불가능한지는 프레임워크 문서를 읽고 확인하지 못했다.
 
-또 하나, Hibernate 에서 `@JdbcTypeCode(SqlTypes.JSON)` 을 붙인 `Map<String,Object>` 필드가 PostgreSQL `jsonb` 컬럼으로 읽고 쓰이는 매핑은 AI 가 쓴 대로 두었고 동작을 확인했을 뿐, 어떤 직렬화기가 어느 시점에 개입하는지는 설명하지 못한다.
+3. Hibernate 에서 `@JdbcTypeCode(SqlTypes.JSON)` 을 붙인 `Map<String,Object>` 필드가 PostgreSQL `jsonb` 컬럼으로 읽고 쓰이는 매핑은 AI 가 쓴 대로 두었고 동작을 확인했을 뿐, 어떤 직렬화기가 어느 시점에 개입하는지는 설명하지 못한다.
 
-이 세 가지는 면접에서 질문받으면 "동작은 확인했고 원리는 확인하지 못했다" 고 답할 부분이다.
+4. 아이디,패스워드에들어가는 문자기준 req dto에 적용된 벨리데이션 경계 설정값들이 정확히 어떤 기준으로 들어갔는지 모르겠다
+일단 단순히 sql인젝션이나 잘못된값으로 로그인, 클라이언트에서 바디값을 변경시켜 다른 회원정보 변경이나 조회를 할가능성이있어 방지해야겠다고 생각했다.
